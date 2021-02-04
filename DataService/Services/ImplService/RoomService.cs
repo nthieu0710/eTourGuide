@@ -109,12 +109,7 @@ namespace eTourGuide.Service.Services.ImplService
                         Floor = (int)room.Floor,
                         No = (int)room.No,
                         Status = (int)room.Status
-                    };
-                    /**//*if (listRoom.Contains(roomRs) == false)
-                    {
-                        listRoom.Add(roomRs);
-                    }
-                    *//**/
+                    };                   
                     if (listRoom.Count == 0)
                     {
                         listRoom.Add(roomRs);
@@ -127,21 +122,9 @@ namespace eTourGuide.Service.Services.ImplService
                             listRoom.Add(roomRs);
                         }
                     }
-                   /* foreach (var r1 in listRoom)
-                    {
-                        if (r1.Id != roomRs.Id)
-                        {
-                            listRoom.Add(roomRs);
-                        }
-                    }*/
-
-
-
                 }
 
             }
-
-
             return listRoom;          
         }
     }

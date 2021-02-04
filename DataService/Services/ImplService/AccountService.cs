@@ -90,10 +90,11 @@ namespace eTourGuide.Service.Servcies.ImplService
 
 
         private string GenerateJwtToken(Account account)
-        {          
+        {
             var claims = new[]
             {
                new Claim(ClaimTypes.Name, account.Username.ToString()),
+               new Claim("Username", string.IsNullOrEmpty(account.Username.ToString())?"":account.Username.ToString())
             };
             var key = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(_config["AppSettings:Secret"]));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);

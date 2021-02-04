@@ -25,33 +25,86 @@ namespace eTourGuide.API.Controllers
         }
 
 
-        [HttpGet("duration/event")]
-        public ActionResult<List<ExhibitResponseForUser>> GetDurationForEvent([FromQuery] GetDurationRequest model)
+
+        [HttpGet("duration/exhibit")]
+        public ActionResult<List<ExhibitResponseForUser>> GetDurationFromExhibit([FromQuery] GetDurationRequest model)
         {
             try
             {
-                var rs = _durationService.DurationForEvent(model.Id, model.Time);
+                var rs = _durationService.SuggestExhibitFromDuration(model.Time);
                 return Ok(rs);
             }
             catch (Exception)
             {
-                throw new CrudException(System.Net.HttpStatusCode.BadRequest, "Get Duration Event Error!!!");
+                throw new CrudException(System.Net.HttpStatusCode.BadRequest, "Get Duration Error!!!");
             }
         }
 
 
-        [HttpGet("duration/topic")]
-        public ActionResult<List<ExhibitResponseForUser>> GetDurationForTopic([FromQuery] GetDurationRequest model)
+        [HttpGet("totalTimeForExhibitInEvent")]
+        public ActionResult<TimeSpan> GetTotalTimeForExhibitInEvent(int id, [FromQuery] int[] exhibitId)
         {
             try
             {
-                var rs = _durationService.DurationForTopic(model.Id, model.Time);
+                var rs = _durationService.GetTotalTimeForVisitExhibitInEvent(id, exhibitId);
                 return Ok(rs);
             }
-            catch (Exception)
+            catch (Exception e)
             {
-                throw new CrudException(System.Net.HttpStatusCode.BadRequest, "Get Duration Topic Error!!!");
+                throw new CrudException(System.Net.HttpStatusCode.BadRequest, "Get Total Error!!!");
+            }
+        }
+
+
+        [HttpGet("totalTimeForExhibitInTopic")]
+        public ActionResult<TimeSpan> GetTotalTimeForExhibitInTopic(int id, [FromQuery] int[] exhibitId)
+        {
+            try
+            {
+                var rs = _durationService.GetTotalTimeForVisitExhibitInTopic(id, exhibitId);
+                return Ok(rs);
+            }
+            catch (Exception e)
+            {
+                throw new CrudException(System.Net.HttpStatusCode.BadRequest, "Get Total Error!!!");
             }
         }
     }
 }
+
+
+
+
+
+
+/*[HttpGet("duration/event")]
+public ActionResult<List<ExhibitResponseForUser>> GetDurationForEvent([FromQuery] GetDurationRequest model)
+{
+    try
+    {
+        var rs = _durationService.DurationForEvent(model.Id, model.Time);
+        return Ok(rs);
+    }
+    catch (Exception)
+    {
+        throw new CrudException(System.Net.HttpStatusCode.BadRequest, "Get Duration Event Error!!!");
+    }
+}
+
+
+[HttpGet("duration/topic")]
+public ActionResult<List<ExhibitResponseForUser>> GetDurationForTopic([FromQuery] GetDurationRequest model)
+{
+    try
+    {
+        var rs = _durationService.DurationForTopic(model.Id, model.Time);
+        return Ok(rs);
+    }
+    catch (Exception)
+    {
+        throw new CrudException(System.Net.HttpStatusCode.BadRequest, "Get Duration Topic Error!!!");
+    }
+}
+    }
+}
+*/

@@ -19,7 +19,134 @@ namespace eTourGuide.Service.Services.ImplService
         }
 
 
-        public  List<ExhibitFeedbackResponse> DurationForEvent(int id, TimeSpan time)
+        //hàm trả về total time khi visitor dừng lại để xem các object đã chọn
+        public TimeSpan GetTotalTimeForVisitExhibitInEvent(int id, int[] exhibitId)
+        {
+            List<ExhibitInEvent> listExInEvt = new List<ExhibitInEvent>();
+            foreach (int exId in exhibitId)
+            {
+                var evtTrans = _unitOfWork.Repository<ExhibitInEvent>().GetAll().Where(x => x.EventId == id && x.Event.Status == 2 && x.ExhibitId == exId).FirstOrDefault();
+                if (evtTrans != null)
+                {
+                    listExInEvt.Add(evtTrans);
+                }
+            
+            }
+            TimeSpan duration = new TimeSpan(00, 00, 00);
+            if (listExInEvt != null)
+            {
+                foreach (var item in listExInEvt)
+                {
+                    if (item.Exhibit.Duration != null)
+                    {
+                        duration = (TimeSpan)(duration + item.Exhibit.Duration);
+                    }
+                }
+            }
+            return duration;
+        }
+
+        public TimeSpan GetTotalTimeForVisitExhibitInTopic(int id, int[] exhibitId)
+        {
+            List<eTourGuide.Data.Entity.ExhibitInTopic> listExInTopic = new List<eTourGuide.Data.Entity.ExhibitInTopic>();
+            foreach (int exId in exhibitId)
+            {
+                var topicTrans = _unitOfWork.Repository<eTourGuide.Data.Entity.ExhibitInTopic>().GetAll().Where(x => x.TopicId == id && x.Topic.Status == 2 && x.ExhibitId == exId).FirstOrDefault();
+                if (topicTrans != null)
+                {
+                    listExInTopic.Add(topicTrans);
+                }
+
+            }
+            TimeSpan duration = new TimeSpan(00, 00, 00);
+            if (listExInTopic != null)
+            {
+                foreach (var item in listExInTopic)
+                {
+                    if (item.Exhibit.Duration != null)
+                    {
+                        duration = (TimeSpan)(duration + item.Exhibit.Duration);
+                    }
+                }
+            }
+            return duration;
+        }
+
+
+        //Hàm trả về list Exhibit khi user chọn thời gian xem
+        public List<ExhibitFeedbackResponse> SuggestExhibitFromDuration(TimeSpan time)
+        {
+            var rs = _unitOfWork.Repository<Exhibit>().GetAll().Where(e => e.Status == 1).AsQueryable();
+            rs = rs.OrderByDescending(exhibit => exhibit.Rating);
+            TimeSpan duration = new TimeSpan(00, 00, 00);
+            List<ExhibitFeedbackResponse> listExhibitForDuration = new List<ExhibitFeedbackResponse>();
+            foreach (var item in rs)
+            {
+                int count = 0;
+                var exhibitInFeedback = _unitOfWork.Repository<Feedback>().GetAll().Where(x => x.ExhibittId == item.Id);            
+                if (exhibitInFeedback != null)
+                {
+                    count = exhibitInFeedback.Count();                  
+                }
+                ExhibitFeedbackResponse exhibitRes = new ExhibitFeedbackResponse()
+                {
+                    Id = item.Id,
+                    Name = item.Name,
+                    Description = item.Description,
+                    Image = item.Image,
+                    Rating = (double)item.Rating,
+                    TotalFeedback = count
+                };
+                listExhibitForDuration.Add(exhibitRes);
+            }
+            //Trường hợp User nhập vào time == 0
+            if (duration == time)
+            {             
+                return listExhibitForDuration.ToList();
+            }
+
+            //Trường hợp User nhập vào time != 0
+            
+            while (duration <= time)
+            {
+                listExhibitForDuration = new List<ExhibitFeedbackResponse>();
+                foreach (var item in rs)
+                {
+                    duration = (TimeSpan)(duration + item.Duration);
+                    if (duration > time)
+                    {
+                        break;
+                    }
+                    int count = 0;
+                    var exhibitInFeedback = _unitOfWork.Repository<Feedback>().GetAll().Where(x => x.ExhibittId == item.Id);
+                    if (exhibitInFeedback != null)
+                    {
+                        count = exhibitInFeedback.Count();
+                    }
+                    ExhibitFeedbackResponse exhibitRes = new ExhibitFeedbackResponse()
+                    {
+                        Id = item.Id,
+                        Name = item.Name,
+                        Description = item.Description,
+                        Image = item.Image,
+                        Rating = (double)item.Rating,
+                        TotalFeedback = count
+                    };
+                    listExhibitForDuration.Add(exhibitRes);
+                }
+            }
+
+            return listExhibitForDuration.ToList();
+        }
+
+
+
+
+
+
+
+
+        /*public  List<ExhibitFeedbackResponse> DurationForEvent(int id, TimeSpan time)
         {
             var evtTrans = _unitOfWork.Repository<ExhibitInEvent>().GetAll().Where(x => x.EventId == id);
             evtTrans = evtTrans.OrderByDescending(exhibit => exhibit.PriorityLevel);
@@ -80,8 +207,8 @@ namespace eTourGuide.Service.Services.ImplService
                 }
                 return listExhibitForDuration.ToList();
             }
-            /*while (duration <= time)
-            {*/
+            *//*while (duration <= time)
+            {*//*
 
 
                 foreach (var item in listExhibit)
@@ -187,8 +314,8 @@ namespace eTourGuide.Service.Services.ImplService
                 }
                 return listExhibitForDuration.ToList();
             }
-            /*while (duration <= time)
-            {*/
+            *//*while (duration <= time)
+            {*//*
 
 
             foreach (var item in listExhibit)
@@ -231,6 +358,8 @@ namespace eTourGuide.Service.Services.ImplService
             }
             //}
             return listExhibitForDuration;
-        }
+        }*/
+
+        
     }
 }

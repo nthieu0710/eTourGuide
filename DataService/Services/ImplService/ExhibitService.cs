@@ -47,7 +47,7 @@ namespace eTourGuide.Service.Services.ImplService
 
         public List<ExhibitResponseForUser> GetAllExhibitsForUser()
         {
-            var rs = _unitOfWork.Repository<Exhibit>().GetAll().AsQueryable();
+            var rs = _unitOfWork.Repository<Exhibit>().GetAll().Where(e => e.Status == 1).AsQueryable();
             List<ExhibitResponseForUser> listExhibitResponse = new List<ExhibitResponseForUser>();
             foreach (var item in rs)
             {               
@@ -66,7 +66,7 @@ namespace eTourGuide.Service.Services.ImplService
 
         public List<ExhibitFeedbackResponse> GetHightLightExhibit()
         {
-            var exhibit = _unitOfWork.Repository<Exhibit>().GetAll().AsQueryable();
+            var exhibit = _unitOfWork.Repository<Exhibit>().GetAll().Where(e => e.Status == 1).AsQueryable();
             List<ExhibitFeedbackResponse> listExhibit = new List<ExhibitFeedbackResponse>();
             foreach (var item in exhibit)
             {
@@ -106,14 +106,14 @@ namespace eTourGuide.Service.Services.ImplService
 
         public List<ExhibitResponseForUser> GetNewExhibit()
         {
-            var rs = _unitOfWork.Repository<Exhibit>().GetAll().AsQueryable();
+            var rs = _unitOfWork.Repository<Exhibit>().GetAll().Where(e => e.Status == 1).AsQueryable();
             rs = rs.OrderByDescending(exhibit => exhibit.CreateDate);
             int count = 0;
             List<ExhibitResponseForUser> listExhibitResponse = new List<ExhibitResponseForUser>();
             foreach (var item in rs)
             {
-                if (item.Status == 1)
-                {
+             
+                
                     ExhibitResponseForUser exhibitResponse = new ExhibitResponseForUser()
                     {
                         Id = item.Id,
@@ -128,7 +128,7 @@ namespace eTourGuide.Service.Services.ImplService
                     {
                         break;
                     }
-                }             
+                            
             }
   
             return listExhibitResponse.ToList();

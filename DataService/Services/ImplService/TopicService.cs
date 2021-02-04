@@ -27,18 +27,6 @@ namespace eTourGuide.Service.Services.ImplService
             DateTime dt = Convert.ToDateTime(DateTime.Now);
             string s2 = dt.ToString("yyyy-MM-dd");
             DateTime dtnew = Convert.ToDateTime(s2);
-            /*if (Status == "New")
-            {
-                statusToDb = 0;
-            }
-            else if (Status == "Ready")
-            {
-                statusToDb = 1;
-            }
-            else if (Status == "Closed")
-            {
-                statusToDb = 2;
-            }*/
             Topic topic = new Topic
             {
                 Name = Name,
@@ -70,7 +58,7 @@ namespace eTourGuide.Service.Services.ImplService
             {
                 throw new Exception("Cant Not Found This Topic!");
             }
-            if (topic.Status == 0 || topic.Status == 2)
+            if (topic.Status == 0 || topic.Status == 1 || topic.Status == 3 || topic.Status == 4)
             {
                 try
                 {
@@ -93,7 +81,7 @@ namespace eTourGuide.Service.Services.ImplService
         public List<TopicResponse> GetAllTopics()
         {
             string statusConvert = "";
-            var rs = _unitOfWork.Repository<Topic>().GetAll().AsQueryable();
+            var rs = _unitOfWork.Repository<Topic>().GetAll().Where(t => t.IsDelete == false).AsQueryable();
             List<TopicResponse> listTopicResponse = new List<TopicResponse>();
             foreach (var item in rs)
             {
@@ -103,9 +91,17 @@ namespace eTourGuide.Service.Services.ImplService
                 }
                 else if (item.Status == 1)
                 {
-                    statusConvert = "Ready";
+                    statusConvert = "Waiting";
                 }
                 else if (item.Status == 2)
+                {
+                    statusConvert = "Active";
+                }
+                else if (item.Status == 3)
+                {
+                    statusConvert = "Disactive";
+                }
+                else if (item.Status == 4)
                 {
                     statusConvert = "Closed";
                 }
@@ -135,11 +131,11 @@ namespace eTourGuide.Service.Services.ImplService
         public List<TopicResponseForUser> GetAllTopicsForUser()
         {
             
-            var rs = _unitOfWork.Repository<Topic>().GetAll().AsQueryable();
+            var rs = _unitOfWork.Repository<Topic>().GetAll().Where(t => t.Status == 2 && t.IsDelete == false).AsQueryable();
             List<TopicResponseForUser> listTopicResponse = new List<TopicResponseForUser>();
             foreach (var item in rs)
             {
-                if (item.Status == 1)
+                if (item.Status == 2)
                 {
                     TopicResponseForUser topicResponse = new TopicResponseForUser()
                     {
@@ -162,7 +158,7 @@ namespace eTourGuide.Service.Services.ImplService
         public List<TopicFeedbackResponse> GetHightLightTopic()
         {
             
-            var topic = _unitOfWork.Repository<Topic>().GetAll().AsQueryable();
+            var topic = _unitOfWork.Repository<Topic>().GetAll().Where(t => t.Status == 2 && t.IsDelete == false).AsQueryable();
             List<TopicFeedbackResponse> listTopic = new List<TopicFeedbackResponse>();
 
             foreach (var item in topic)
@@ -186,21 +182,24 @@ namespace eTourGuide.Service.Services.ImplService
                     }
 
                 }
-                TopicFeedbackResponse topicObj = new TopicFeedbackResponse()
-                {
-                    Id = item.Id,
-                    Name = item.Name,
-                    Description = item.Description,
-                    Image = item.Image,                   
-                    StartDate = dt.Date.ToString("dd/MM/yyyy"),
-                    Rating = rating,
-                    TotalFeedback = count
-                   
-                };
-                if (topicObj.Rating >= 4)
-                {
-                    listTopic.Add(topicObj);
-                }
+               
+                    TopicFeedbackResponse topicObj = new TopicFeedbackResponse()
+                    {
+                        Id = item.Id,
+                        Name = item.Name,
+                        Description = item.Description,
+                        Image = item.Image,
+                        StartDate = dt.Date.ToString("dd/MM/yyyy"),
+                        Rating = rating,
+                        TotalFeedback = count
+
+                    };
+                    if (topicObj.Rating >= 4)
+                    {
+                        listTopic.Add(topicObj);
+                    }
+                
+                
             }
             return listTopic;
         }
@@ -219,11 +218,19 @@ namespace eTourGuide.Service.Services.ImplService
             }
             else if (topic.Status == 1)
             {
-                statusConvert = "Ready";
+                statusConvert = "Waiting";
             }
             else if (topic.Status == 2)
             {
-                statusConvert = "Closed";
+                statusConvert = "Active ";
+            }
+            else if (topic.Status == 3)
+            {
+                statusConvert = "Disactive ";
+            }
+            else if (topic.Status == 4)
+            {
+                statusConvert = "Closed ";
             }
             DateTime createDate = (DateTime)topic.CreateDate;
             DateTime startDate = (DateTime)topic.StartDate;
@@ -240,6 +247,34 @@ namespace eTourGuide.Service.Services.ImplService
             return topicResponse;
         }
 
+        public async Task<int> UpdateStatusFromWatingToActive(int id)
+        {
+            Topic topic = _unitOfWork.Repository<Topic>().GetAll().Where(t =>t.Id == id && t.IsDelete == false && t.Status == 1).FirstOrDefault();
+            if (topic == null)
+            {
+                throw new Exception("Cant Not Found This Topic!");
+            }
+            
+                var topicTrans = _unitOfWork.Repository<eTourGuide.Data.Entity.ExhibitInTopic>().GetAll().Where(x => x.TopicId == topic.Id);
+                if (topicTrans.ToList().Count > 0)
+                {               
+                    try
+                    {
+                        topic.Status = 2;
+                        await _unitOfWork.CommitAsync();
+                        return (int)topic.Status;
+                    }
+                    catch (Exception)
+                    {
+                        throw new CrudException(System.Net.HttpStatusCode.BadRequest, "Update Error!!!");
+                    }
+                }
+                else 
+                {
+                    throw new CrudException(System.Net.HttpStatusCode.BadRequest, "Update Error!!!");
+                }
+        }
+
         //Implement from Interface ITopicService - cập nhập Topic
         public async Task<Topic> UpdateTopic(int id, string Name, string Description, string Image, DateTime StartDate, string Status)
         {
@@ -254,29 +289,35 @@ namespace eTourGuide.Service.Services.ImplService
             {
                 statusToDb = 0;
             }
-            else if (Status == "Ready")
+            else if (Status == "Waiting")
             {
                 statusToDb = 1;
-            } else if (Status == "Closed")
+            } else if (Status == "Active")
             {
                 statusToDb = 2;
+            }else if (Status == "Disactive")
+            {
+                statusToDb = 3;
+            }else if (Status == "Closed")
+            {
+                statusToDb = 4;
             }
-            topic.Name = Name;
-            topic.Description = Description;
-            topic.Image = Image;
-            topic.StartDate = StartDate;
-            //topic.Rating = Rating;
-            topic.Status = statusToDb;
+            
             try
             {
-                
+                topic.Name = Name;
+                topic.Description = Description;
+                topic.Image = Image;
+                topic.StartDate = StartDate;
+                topic.Status = statusToDb;
+
                 await _unitOfWork.CommitAsync();
                
                 return topic;
             }
             catch (Exception)
             {
-                throw new CrudException(System.Net.HttpStatusCode.BadRequest, "Insert Error!!!");
+                throw new CrudException(System.Net.HttpStatusCode.BadRequest, "Update Error!!!");
             }
         }
     }

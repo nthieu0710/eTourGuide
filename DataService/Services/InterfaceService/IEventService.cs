@@ -20,5 +20,6 @@ namespace eTourGuide.Service.Services.InterfaceService
         Task<Event> UpdateEvent(int id, string Name, string Description, string Image, string Status, DateTime StartDate, DateTime EndDate);
         Task<Event> DeleteEvent(int id);
 
+        Task<int> UpdateStatusFromWatingToActive(int id);
     }
 }

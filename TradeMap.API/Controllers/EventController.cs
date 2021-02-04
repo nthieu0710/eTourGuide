@@ -105,12 +105,28 @@ namespace eTourGuide.API.Controllers
         }
 
         [HttpPut("id={id}")]
-        public async Task<ActionResult<EventResponse>> UpdateEvent([FromBody] PutEventRequest model, int id)
+        public async Task<ActionResult<Event>> UpdateEvent([FromBody] PutEventRequest model, int id)
         {
 
             try
             {
                 var rs = await _eventService.UpdateEvent(id, model.Name, model.Description, model.Image, model.Status, model.StartDate, model.EndDate);
+                return Ok(rs);
+            }
+            catch (Exception)
+            {
+
+                return BadRequest("Can Not Update Event!");
+            }
+        }
+
+        [HttpPut("active/event/id={id}")]
+        public async Task<ActionResult<int>> ActiveEvent(int id)
+        {
+
+            try
+            {
+                var rs = await _eventService.UpdateStatusFromWatingToActive(id);
                 return Ok(rs);
             }
             catch (Exception)

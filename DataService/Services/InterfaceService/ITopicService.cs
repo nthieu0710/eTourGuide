@@ -30,5 +30,7 @@ namespace eTourGuide.Service.Services.InterfaceService
         List<TopicResponseForUser> GetAllTopicsForUser();
 
 
+        Task<int> UpdateStatusFromWatingToActive(int id);
+
     }
 }

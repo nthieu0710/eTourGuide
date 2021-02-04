@@ -25,19 +25,7 @@ namespace eTourGuide.Service.Services.ImplService
             DateTime dt = Convert.ToDateTime(DateTime.Now);
             string s2 = dt.ToString("yyyy-MM-dd");
             DateTime dtnew = Convert.ToDateTime(s2);
-            /*if (Status == "New")
-            {
-                statusToDb = 0;
-            }
-            else if (Status == "Ready")
-            {
-                statusToDb = 1;
-            }
-            else if (Status == "Closed")
-            {
-                statusToDb = 2;
-            }*/
-
+            
             Event evt = new Event
             {
                 Name = Name,
@@ -48,7 +36,6 @@ namespace eTourGuide.Service.Services.ImplService
                 Status = statusToDb,
                 StartDate = StartDate,
                 EndDate = EndDate,
-                //IsDelete = false
             };
             try
             {
@@ -69,7 +56,7 @@ namespace eTourGuide.Service.Services.ImplService
             {
                 throw new Exception("Cant Not Found This Topic!");
             }
-            if (evt.Status == 0 || evt.Status == 2 || evt.Status == 3)
+            if (evt.Status == 0 || evt.Status == 1 || evt.Status == 3 || evt.Status == 4)
             {
                 try
                 {
@@ -81,7 +68,7 @@ namespace eTourGuide.Service.Services.ImplService
                     throw new CrudException(System.Net.HttpStatusCode.BadRequest, "Can not delete event!!!");
                 }
             }
-            else if (evt.Status == 1)
+            else if (evt.Status == 2)
             {
                 throw new CrudException(System.Net.HttpStatusCode.BadRequest, "Can not delete event!!!");
             }
@@ -91,7 +78,7 @@ namespace eTourGuide.Service.Services.ImplService
         public List<EventResponse> GetAllEventsForAdmin()
         {
             string statusConvert = "";
-            var rs = _unitOfWork.Repository<Event>().GetAll().AsQueryable();
+            var rs = _unitOfWork.Repository<Event>().GetAll().Where(e => e.IsDelete == false).AsQueryable();
             List<EventResponse> listEventResponse = new List<EventResponse>();
             foreach (var item in rs)
             {
@@ -101,18 +88,21 @@ namespace eTourGuide.Service.Services.ImplService
                 }
                 else if (item.Status == 1)
                 {
-                    statusConvert = "Ready";
+                    statusConvert = "Waiting";
                 }
                 else if (item.Status == 2)
                 {
-                    statusConvert = "Closed";
+                    statusConvert = "Active";
                 }
                 else if (item.Status == 3)
                 {
-                    statusConvert = "Delay";
+                    statusConvert = "Disactive";
                 }
-                if (item.IsDelete == false)
+                else if (item.Status == 4)
                 {
+                    statusConvert = "Closed";
+                }
+                
                     DateTime createDate = (DateTime)item.CreateDate;
                     DateTime startDate = (DateTime)item.StartDate;
                     DateTime endDate = (DateTime)item.EndDate;
@@ -125,12 +115,12 @@ namespace eTourGuide.Service.Services.ImplService
                         CreateDate = createDate.Date.ToString("yyyy-MM-dd"),
                         StartDate = startDate.Date.ToString("yyyy-MM-dd"),
                         EndDate = endDate.Date.ToString("yyyy-MM-dd"),
-                        Rating = (float)item.Rating,
+                        Rating = Math.Round((float)item.Rating, 2),
                         Status = statusConvert,
                         //isDelete = (bool)item.IsDelete
                     };
                     listEventResponse.Add(eventResponse);
-                }
+                
 
             }
             return listEventResponse.ToList();
@@ -138,12 +128,11 @@ namespace eTourGuide.Service.Services.ImplService
 
         public List<EventResponseForUser> GetAllEventsForUser()
         {
-            var rs = _unitOfWork.Repository<Event>().GetAll().AsQueryable();
+            var rs = _unitOfWork.Repository<Event>().GetAll().Where(e => e.Status == 2 && e.IsDelete == false).AsQueryable();
             List<EventResponseForUser> listEventResponse = new List<EventResponseForUser>();
             foreach (var item in rs)
             {
-                if (item.Status == 3)
-                {
+               
                     EventResponseForUser eventResponse = new EventResponseForUser()
                     {
                         Id = item.Id,
@@ -155,7 +144,7 @@ namespace eTourGuide.Service.Services.ImplService
                         EndDate = (DateTime)item.EndDate
                     };
                     listEventResponse.Add(eventResponse);
-                }
+                
 
             }
             return listEventResponse.ToList();
@@ -163,7 +152,7 @@ namespace eTourGuide.Service.Services.ImplService
 
         public List<EventFeedbackResponse> GetCurrentEvent()
         {
-            var evt = _unitOfWork.Repository<Event>().GetAll().AsQueryable();
+            var evt = _unitOfWork.Repository<Event>().GetAll().Where(e => e.Status == 2 && e.IsDelete == false).AsQueryable();
             List<EventFeedbackResponse> listRes = new List<EventFeedbackResponse>();
             if (evt != null)
             {
@@ -192,8 +181,7 @@ namespace eTourGuide.Service.Services.ImplService
                     EventFeedbackResponse res = new EventFeedbackResponse();
                     if (item.StartDate <= DateTime.Now && item.EndDate >= DateTime.Now)
                     {
-                        if (item.Status == 1)
-                        {
+                       
                             DateTime startDate = (DateTime)item.StartDate;
                             DateTime endDate = (DateTime)item.EndDate;
                             res.Id = item.Id;
@@ -206,7 +194,7 @@ namespace eTourGuide.Service.Services.ImplService
                             res.TotalFeedback = count;
 
                             listRes.Add(res);
-                        }
+                        
                     }
                 }
             }
@@ -215,7 +203,7 @@ namespace eTourGuide.Service.Services.ImplService
 
         public List<EventFeedbackResponse> GetListHightLightEvent()
         {
-            var evt = _unitOfWork.Repository<Event>().GetAll().AsQueryable();
+            var evt = _unitOfWork.Repository<Event>().GetAll().Where(e => e.Status == 2 && e.IsDelete == false).AsQueryable();
             List<EventFeedbackResponse> listEvent = new List<EventFeedbackResponse>();
             foreach (var item in evt)
             {
@@ -242,6 +230,7 @@ namespace eTourGuide.Service.Services.ImplService
 
                 DateTime startDate = (DateTime)item.StartDate;
                 DateTime endDate = (DateTime)item.EndDate;
+                
                 EventFeedbackResponse eventObj = new EventFeedbackResponse()
                 {
                     
@@ -276,28 +265,31 @@ namespace eTourGuide.Service.Services.ImplService
             {
                 statusToDb = 0;
             }
-            else if (Status == "Ready")
+            else if (Status == "Waiting")
             {
                 statusToDb = 1;
             }
-            else if (Status == "Closed")
+            else if (Status == "Active")
             {
                 statusToDb = 2;
             }
-            else if (Status == "Delay")
+            else if (Status == "Disactive")
             {
                 statusToDb = 3;
             }
-            evt.Name = Name;
-            evt.Description = Description;
-            evt.Image = Image;
-            evt.StartDate = StartDate;
-            evt.EndDate = EndDate;
-            //topic.Rating = Rating;
-            evt.Status = statusToDb;
+            else if (Status == "Closed")
+            {
+                statusToDb = 4;
+            }
+           
             try
             {
-
+                evt.Name = Name;
+                evt.Description = Description;
+                evt.Image = Image;
+                evt.StartDate = StartDate;
+                evt.EndDate = EndDate;
+                evt.Status = statusToDb;
                 await _unitOfWork.CommitAsync();
 
                 return evt;
@@ -306,6 +298,35 @@ namespace eTourGuide.Service.Services.ImplService
             {
                 throw new CrudException(System.Net.HttpStatusCode.BadRequest, "Insert Error!!!");
             }
+        }
+
+        public async Task<int> UpdateStatusFromWatingToActive(int id)
+        {
+            var evt = _unitOfWork.Repository<Event>().GetById(id);
+            if (evt == null)
+            {
+                throw new Exception("Cant Not Found This Event!");
+            }
+            
+                var evtTrans = _unitOfWork.Repository<eTourGuide.Data.Entity.ExhibitInEvent>().GetAll().Where(x => x.EventId == id);
+                if (evtTrans.ToList().Count > 0)
+                {
+                    
+                    try
+                    {
+                        evt.Status = 2;
+                        await _unitOfWork.CommitAsync();
+                        return (int)evt.Status;
+                    }
+                    catch (Exception)
+                    {
+                        throw new CrudException(System.Net.HttpStatusCode.BadRequest, "Update Error!!!");
+                    }
+                }
+                else
+                {
+                    throw new CrudException(System.Net.HttpStatusCode.BadRequest, "Update Error!!!");
+                }              
         }
     }
 }

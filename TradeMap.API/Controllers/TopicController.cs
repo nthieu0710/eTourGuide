@@ -107,12 +107,28 @@ namespace eTourGuide.API.Controllers
 
         //Controller for UpdateTopic
         [HttpPut("id={id}")]
-        public async Task<ActionResult<TopicResponse>> UpdateTopic([FromBody] PutTopicRequest model, int id)
+        public async Task<ActionResult<Topic>> UpdateTopic([FromBody] PutTopicRequest model, int id)
         {
 
             try
             {
                 var rs = await _topicService.UpdateTopic(id, model.Name, model.Description, model.Image, model.StartDate, model.Status);
+                return Ok(rs);
+            }
+            catch (Exception)
+            {
+
+                return BadRequest("Can Not Update Topic!");
+            }
+        }
+
+        [HttpPut("active/topic/id={id}")]
+        public async Task<ActionResult<int>> ActiveTopic(int id)
+        {
+
+            try
+            {
+                var rs = await _topicService.UpdateStatusFromWatingToActive(id);
                 return Ok(rs);
             }
             catch (Exception)
