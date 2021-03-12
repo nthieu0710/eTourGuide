@@ -10,16 +10,16 @@ namespace eTourGuide.Service.Services.InterfaceService
     public interface ITopicService
     {
         //Tạo mới 1 Topic
-        Task<Topic> AddTopic(string Name, string Description, string Image, DateTime StartDate);
+        Task<int> AddTopic(string Name, string Description, string Image, DateTime StartDate);
 
         //Get tất cả các Topic
         List<TopicResponse> GetAllTopics();
 
         //Cập nhập Topic
-        Task<Topic> UpdateTopic(int id, string Name, string Description, string Image, DateTime StartDate ,string Status);
+        Task<int> UpdateTopic(int id, string Name, string Description, string Image, DateTime StartDate ,string Status);
 
 
-        Task<Topic> DeleteTopic(int id);
+        Task<int> DeleteTopic(int id);
 
 
         //show highlight topic with rating > 4
@@ -31,6 +31,12 @@ namespace eTourGuide.Service.Services.InterfaceService
 
 
         Task<int> UpdateStatusFromWatingToActive(int id);
+        
 
+        Task<int> AddExhibitToTopic(int topicId, int exhibitId);
+
+
+
+        List<TopicResponse> GetTopicHasNoRoom();
     }
 }

@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace eTourGuide.Service.Services.ImplService
 {
@@ -18,9 +19,40 @@ namespace eTourGuide.Service.Services.ImplService
         {
             _unitOfWork = unitOfWork;
         }
-      
 
-        List<ExhibitFeedbackResponse> IExhibitInEventService.GetExhibitInEvent(int id)
+        public async Task<int> DeleteExhibitInEvent(int eventId, int exhibitId)
+        {
+            int rs = 0;
+            //lấy obj trong bảng ExhibitInEvent chứa eventId và exhibitId đó
+            ExhibitInEvent exhibitInEvent = _unitOfWork.Repository<ExhibitInEvent>().GetAll().Where(e => e.EventId == eventId && e.ExhibitId == exhibitId).FirstOrDefault();
+            if (exhibitInEvent != null)
+            {
+                try
+                {
+                    //Delete row trong bảng ExhibitInEvent
+                    _unitOfWork.Repository<ExhibitInEvent>().Delete(exhibitInEvent);
+
+                    //Get event đó ra để set status thành Ready
+                    Exhibit exhibit = _unitOfWork.Repository<Exhibit>().GetById(exhibitId);
+                    exhibit.Status = 0;
+
+
+                    _unitOfWork.Repository<Exhibit>().Update(exhibit, exhibit.Id);
+
+                    await _unitOfWork.CommitAsync();
+
+                    rs = 1;
+                    return rs;
+                }
+                catch (Exception)
+                {
+                    throw new CrudException(System.Net.HttpStatusCode.BadRequest, "Can not delete exhibit in this event!!!");
+                }
+            }
+            return rs;
+        }
+
+        public List<ExhibitFeedbackResponse> GetExhibitInEvent(int id)
         {
             var evt = _unitOfWork.Repository<Event>().GetById(id);
             if (evt == null)
@@ -66,6 +98,38 @@ namespace eTourGuide.Service.Services.ImplService
             }
             return listExhibit;
            
+        }
+
+        public List<ExhibitResponse> GetExhibitInEventForAdmin(int id)
+        {
+            var evt = _unitOfWork.Repository<Event>().GetById(id);
+            if (evt == null)
+            {
+                throw new CrudException(System.Net.HttpStatusCode.BadRequest, "Can not found Event!!!");
+            }
+
+            var evtTrans = _unitOfWork.Repository<eTourGuide.Data.Entity.ExhibitInEvent>().GetAll().Where(x => x.EventId == id);
+            List<ExhibitResponse> listExhibit = new List<ExhibitResponse>();
+            if (evtTrans != null)
+            {
+                foreach (var item in evtTrans)
+                {
+                    DateTime createDate = (DateTime)item.Exhibit.CreateDate;
+
+                    listExhibit.Add(new ExhibitResponse
+                    {
+                        Id = item.Exhibit.Id,
+                        Name = item.Exhibit.Name,
+                        Description = item.Exhibit.Description,
+                        Image = item.Exhibit.Image,
+                        CreateDate = createDate.Date.ToString("yyyy-MM-dd"),
+                        Rating = item.Exhibit.Rating,
+                        Status = "Added",
+                        Duration = (TimeSpan)item.Exhibit.Duration
+                    });
+                }
+            }
+            return listExhibit;
         }
     }
 }

@@ -15,11 +15,16 @@ namespace eTourGuide.Service.Services.InterfaceService
 
         List<EventFeedbackResponse> GetCurrentEvent();
 
-        Task<Event> AddEvent(string Name, string Description, string Image, DateTime StartDate, DateTime EndDate);
+        Task<int> AddEvent(string Name, string Description, string Image, DateTime StartDate, DateTime EndDate);
 
-        Task<Event> UpdateEvent(int id, string Name, string Description, string Image, string Status, DateTime StartDate, DateTime EndDate);
-        Task<Event> DeleteEvent(int id);
+        Task<int> UpdateEvent(int id, string Name, string Description, string Image, string Status, DateTime StartDate, DateTime EndDate);
+        Task<int> DeleteEvent(int id);
 
         Task<int> UpdateStatusFromWatingToActive(int id);
+
+
+        Task<int> AddExhibitToEvent(int eventId, int exhibitId);
+
+        List<EventResponse> GetEventHasNoRoom();
     }
 }

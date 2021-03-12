@@ -9,12 +9,20 @@ namespace eTourGuide.Service.Services.InterfaceService
 {
     public interface IExhibitService
     {
-        //Task<Exhibit> AddExhibit(string Name, string Description, string Image, float Rating, int Status);
+        Task<int> AddExhibit(string Name, string Description, string Image, TimeSpan duration);
+
+        Task<int> UpdateExhibit(int id, string Name, string Description, string Image, TimeSpan Duration);
+
+        Task<int> DeleteExhibit(int id);
 
         List<ExhibitFeedbackResponse> GetHightLightExhibit();
 
         List<ExhibitResponseForUser> GetAllExhibitsForUser();
 
         List<ExhibitResponseForUser> GetNewExhibit();
+
+        List<ExhibitResponse> GetAvailableExhibit();
+
+        List<ExhibitResponse> GetAllExhibitForAdmin();
     }
 }

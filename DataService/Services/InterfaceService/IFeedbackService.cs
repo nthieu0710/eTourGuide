@@ -18,11 +18,23 @@ namespace eTourGuide.Service.Services.InterfaceService
 
 
 
+        Task<int> CreateUserFeedbackForExhibit(int exhibitId, string visitorName, double rating, string description);
+        Task<int> CreateUserFeedbackForEvent(int eventId, string visitorName, double rating, string description);
+        Task<int> CreateUserFeedbackForTopic(int topicId, string visitorName, double rating, string description);
+
+
+
+        List<EventFeedbackFromUser> GetFeedbacksEventForAdmin();
+
+        List<ExhibitFeedbackFromUser> GetFeedbacksExhibitForAdmin();
+
+        List<TopicFeedbackFromUser> GetFeedbacksTopicForAdmin();
+
+      
 
 
 
 
 
-        
     }
 }
