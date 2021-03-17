@@ -25,106 +25,81 @@ namespace eTourGuide.API.Controllers
 
 
         [HttpGet("duration-for-time")]
-        public ActionResult<List<ExhibitResponseForUser>> GetDurationFromExhibit([FromQuery] TimeSpan time)
+        public ActionResult<List<ExhibitResponse>> GetDurationFromExhibit([FromQuery] TimeSpan time)
         {
-            try
-            {
+            /*try
+            {*/
                 var rs = _durationService.SuggestExhibitFromDuration(time);
                 return Ok(rs);
-            }
+            /*}
             catch (Exception)
             {
                 throw new CrudException(System.Net.HttpStatusCode.BadRequest, "Get Duration Error!!!");
-            }
+            }*/
         }
 
 
         [HttpGet("suggest-route-base-on-exhibit")]
         public ActionResult<List<int>> GetSuggestRoute([FromQuery] int[] exhibitId)
         {
-            try
-            {
+           /* try
+            {*/
                 var rs = _durationService.SuggestRouteBaseOnExhibit(exhibitId);
                 return Ok(rs);
-            }
+            /*}
             catch (Exception e)
             {
                 throw new CrudException(System.Net.HttpStatusCode.BadRequest, "Get Suggest Route Error!!!");
-            }
+            }*/
         }
 
-        [HttpPost("distance-between-room")]
+        /*[HttpPost("distance-between-room")]
         public ActionResult<Double> GetDurationFromExhibit(int[] room)
         {
-            try
-            {
+           
                 var rs = _durationService.TotalDistance(room);
                 return Ok(rs);
-            }
-            catch (Exception e)
-            {
-                throw new CrudException(System.Net.HttpStatusCode.BadRequest, "Get Distance Error!!!");
-            }
-        }
+         
+        }*/
 
 
-        [HttpGet("total-time-for-visit-exhibit-in-event")]
+       /* [HttpGet("total-time-for-visit-exhibit-in-event")]
         public ActionResult<TimeSpan> GetTotalTimeForExhibitInEvent(int id, [FromQuery] int[] exhibitId)
         {
-            try
-            {
+          
                 var rs = _durationService.GetTotalTimeForVisitExhibitInEvent(id, exhibitId);
                 return Ok(rs);
-            }
-            catch (Exception e)
-            {
-                throw new CrudException(System.Net.HttpStatusCode.BadRequest, "Get Total Error!!!");
-            }
-        }
+         
+        }*/
 
 
-        [HttpGet("total-time-for-visit-exhibit-in-topic")]
+        /*[HttpGet("total-time-for-visit-exhibit-in-topic")]
         public ActionResult<TimeSpan> GetTotalTimeForExhibitInTopic(int id, [FromQuery] int[] exhibitId)
         {
-            try
-            {
+        
                 var rs = _durationService.GetTotalTimeForVisitExhibitInTopic(id, exhibitId);
                 return Ok(rs);
-            }
-            catch (Exception e)
-            {
-                throw new CrudException(System.Net.HttpStatusCode.BadRequest, "Get Total Error!!!");
-            }
-        }
+            
+        }*/
 
 
 
         [HttpPost("total-time-to-move-and-visit-exhibit-in-a-event")]
-        public ActionResult<TimeSpan> GetTotalTimeToMoveAndVisitExhibitInEvent(int eventId, int[] room)
+        public ActionResult<TimeSpan> GetTotalTimeToMoveAndVisitExhibitInEvent(int eventId, int[] exhibitId)
         {
-            try
-            {
-                var rs = _durationService.TotalTimeForVisitorInEvent(eventId, room);
+          
+                var rs = _durationService.TotalTimeForVisitorInEvent(eventId, exhibitId);
                 return Ok(rs);
-            }
-            catch (Exception e)
-            {
-                throw new CrudException(System.Net.HttpStatusCode.BadRequest, "Get Time Error!!!");
-            }
+           
         }
 
         [HttpPost("total-time-to-move-and-visit-exhibit-in-a-topic")]
-        public ActionResult<TimeSpan> GetTotalTimeToMoveAndVisitExhibitInTopic(int topicId, int[] room)
+        public ActionResult<TimeSpan> GetTotalTimeToMoveAndVisitExhibitInTopic(int topicId, int[] exhibitId)
         {
-            try
-            {
-                var rs = _durationService.TotalTimeForVisitorInTopic(topicId, room);
+          
+                var rs = _durationService.TotalTimeForVisitorInTopic(topicId, exhibitId);
                 return Ok(rs);
-            }
-            catch (Exception e)
-            {
-                throw new CrudException(System.Net.HttpStatusCode.BadRequest, "Get Time Error!!!");
-            }
+          
         }
     }
 }

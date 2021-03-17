@@ -8,11 +8,11 @@ namespace eTourGuide.Service.Model.Response
     {
         
 
-        public List<EventFeedbackResponse> _listEvent { get; set; }
-        public List<TopicFeedbackResponse> _listTopic { get; set; }
-        public List<ExhibitFeedbackResponse> _listExhibit { get; set; }
+        public List<EventResponse> _listEvent { get; set; }
+        public List<TopicResponse> _listTopic { get; set; }
+        public List<ExhibitResponse> _listExhibit { get; set; }
 
-        public SearchResponse(List<EventFeedbackResponse> listEvent, List<TopicFeedbackResponse> listTopic, List<ExhibitFeedbackResponse> listExhibit)
+        public SearchResponse(List<EventResponse> listEvent, List<TopicResponse> listTopic, List<ExhibitResponse> listExhibit)
         {
             _listEvent = listEvent;
             _listTopic = listTopic;

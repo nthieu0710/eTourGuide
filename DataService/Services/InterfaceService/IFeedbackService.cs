@@ -10,11 +10,11 @@ namespace eTourGuide.Service.Services.InterfaceService
     public interface IFeedbackService
     {
         //Get list feedback(exhibit/event/topic)
-        List<Feedback> GetFeedbacksExhibitcForUserById(int Id);
+        List<ExhibitFeedbackFromUser> GetFeedbacksExhibitcForUserById(int Id);
 
-        List<Feedback> GetFeedbacksTopicForUserById(int Id);
+        List<TopicFeedbackFromUser> GetFeedbacksTopicForUserById(int Id);
 
-        List<Feedback> GetFeedbacksEventForUserById(int Id);
+        List<EventFeedbackFromUser> GetFeedbacksEventForUserById(int Id);
 
 
 
@@ -30,7 +30,13 @@ namespace eTourGuide.Service.Services.InterfaceService
 
         List<TopicFeedbackFromUser> GetFeedbacksTopicForAdmin();
 
-      
+
+
+
+        Task<int> DisableFeedbackForAdmin(int feedbackID);
+
+        Task<int> EnableFeedbackForAdmin(int feedbackID);
+
 
 
 

@@ -45,7 +45,7 @@ namespace eTourGuide.Service.Services.ImplService
             }
             catch (Exception)
             {
-                throw new CrudException(System.Net.HttpStatusCode.BadRequest, "Insert Error!!!");
+                throw new Exception("Insert Error!!!");
             }
         }
 
@@ -98,7 +98,7 @@ namespace eTourGuide.Service.Services.ImplService
             catch (Exception e)
             {
 
-                throw new CrudException(System.Net.HttpStatusCode.BadRequest, "Add Object To Event Error!!!");
+                throw new Exception("Add Object To Event Error!!!");
             }
         }
 
@@ -135,34 +135,57 @@ namespace eTourGuide.Service.Services.ImplService
 
                         EventInRoom eventInRoom = _unitOfWork.Repository<EventInRoom>().GetAll().Where(e => e.EventId == id).FirstOrDefault();
                         
-                        Room room = _unitOfWork.Repository<Room>().GetAll().Where(r => r.Id == eventInRoom.RoomId).FirstOrDefault();
+                        
 
-                        //xóa row của event trong EventInRoom
-                        _unitOfWork.Repository<EventInRoom>().Delete(eventInRoom);
+                        if (eventInRoom != null) {
+                            Room room = _unitOfWork.Repository<Room>().GetAll().Where(r => r.Id == eventInRoom.RoomId).FirstOrDefault();
+                            //xóa row của event trong EventInRoom
+                            _unitOfWork.Repository<EventInRoom>().Delete(eventInRoom);
+
+
+                            //set status của room thành 0
+                            room.Status = 0;
+                            _unitOfWork.Repository<Room>().Update(room, room.Id);
+                        }
                        
 
-                        //set status của room thành 0
-                        room.Status = 0;
-                        _unitOfWork.Repository<Room>().Update(room, room.Id);
 
 
-                        //Set event isDelete == True để xóa
-                        evt.IsDelete = true;
-                        await _unitOfWork.CommitAsync();
+                    }else if (checkExhibitInEvent.Count() == 0)
+                    {
+                        EventInRoom eventInRoom = _unitOfWork.Repository<EventInRoom>().GetAll().Where(e => e.EventId == id).FirstOrDefault();
 
+                        
+
+                        if (eventInRoom != null)
+                        {
+                            Room room = _unitOfWork.Repository<Room>().GetAll().Where(r => r.Id == eventInRoom.RoomId).FirstOrDefault();
+                            //xóa row của event trong EventInRoom
+                            _unitOfWork.Repository<EventInRoom>().Delete(eventInRoom);
+
+
+                            //set status của room thành 0
+                            room.Status = 0;
+                            _unitOfWork.Repository<Room>().Update(room, room.Id);
+                        }
+
+
+                        
                     }
 
-                    
+                    //Set event isDelete == True để xóa
+                    evt.IsDelete = true;
+                    await _unitOfWork.CommitAsync();
                 }
                 catch (Exception e)
                 {
                     
-                    throw new CrudException(System.Net.HttpStatusCode.BadRequest, "Can not delete event!!!");
+                    throw new Exception("Can not delete event!!!");
                 }
             }
             else if (evt.Status == 2)
             {
-                throw new CrudException(System.Net.HttpStatusCode.BadRequest, "Can not delete event!!!");
+                throw new Exception("Can not delete event!!!");
             }
             return evt.Id;
         }
@@ -218,22 +241,26 @@ namespace eTourGuide.Service.Services.ImplService
             return listEventResponse.ToList();
         }
 
-        public List<EventResponseForUser> GetAllEventsForUser()
+        public List<EventResponse> GetAllEventsForUser()
         {
             var rs = _unitOfWork.Repository<Event>().GetAll().Where(e => e.Status == 2 && e.IsDelete == false).AsQueryable();
-            List<EventResponseForUser> listEventResponse = new List<EventResponseForUser>();
+            List<EventResponse> listEventResponse = new List<EventResponse>();
             foreach (var item in rs)
             {
-               
-                    EventResponseForUser eventResponse = new EventResponseForUser()
+
+                    DateTime startDate = (DateTime)item.StartDate;
+                    DateTime endDate = (DateTime)item.EndDate;
+
+
+                    EventResponse eventResponse = new EventResponse()
                     {
                         Id = item.Id,
                         Name = item.Name,
                         Description = item.Description,
                         Image = item.Image,
                         Rating = Math.Round((float)item.Rating,2),
-                        StartDate = (DateTime)item.StartDate,
-                        EndDate = (DateTime)item.EndDate
+                        StartDate = startDate.Date.ToString("dd/MM/yyyy"),
+                        EndDate = endDate.Date.ToString("dd/MM/yyyy")
                     };
                     listEventResponse.Add(eventResponse);
                 
@@ -242,35 +269,27 @@ namespace eTourGuide.Service.Services.ImplService
             return listEventResponse.ToList();
         }
 
-        public List<EventFeedbackResponse> GetCurrentEvent()
+        public List<EventResponse> GetCurrentEvent()
         {
             var evt = _unitOfWork.Repository<Event>().GetAll().Where(e => e.Status == 2 && e.IsDelete == false).AsQueryable();
-            List<EventFeedbackResponse> listRes = new List<EventFeedbackResponse>();
+            List<EventResponse> listRes = new List<EventResponse>();
             if (evt != null)
             {
                 foreach (var item in evt)
                 {
                     int count = 0;
                     var evtInFeedback = _unitOfWork.Repository<Feedback>().GetAll().Where(x => x.EventId == item.Id);
-                    double ratingAVG = 0;
-                    double sumRating = 0;
+                  
                     if (evtInFeedback != null)
                     {
                         count = evtInFeedback.Count();
-                        foreach (var item2 in evtInFeedback)
-                        {
-                            sumRating = (double)(sumRating + item2.Rating);
-                        }
-                        if (count != 0)
-                        {
-                            ratingAVG = sumRating / count;
-                        }
+                       
 
                     }
-                    
-                    
-                    
-                    EventFeedbackResponse res = new EventFeedbackResponse();
+
+
+
+                    EventResponse res = new EventResponse();
                     if (item.StartDate <= DateTime.Now && item.EndDate >= DateTime.Now)
                     {
                        
@@ -282,7 +301,7 @@ namespace eTourGuide.Service.Services.ImplService
                             res.Image = item.Image;
                             res.StartDate = startDate.Date.ToString("dd/MM/yyyy");
                             res.EndDate = endDate.Date.ToString("dd/MM/yyyy");
-                            res.Rating = ratingAVG;
+                            res.Rating = (double)item.Rating;
                             res.TotalFeedback = count;
 
                             listRes.Add(res);
@@ -346,45 +365,36 @@ namespace eTourGuide.Service.Services.ImplService
             return listEventResponse.ToList();
         }
 
-        public List<EventFeedbackResponse> GetListHightLightEvent()
+        public List<EventResponse> GetListHightLightEvent()
         {
             int highlightRate = 4;
             var evt = _unitOfWork.Repository<Event>().GetAll().Where(e => e.Status == 2 && e.IsDelete == false).AsQueryable();
-            List<EventFeedbackResponse> listEvent = new List<EventFeedbackResponse>();
+            List<EventResponse> listEvent = new List<EventResponse>();
             foreach (var item in evt)
             {
                 int count = 0;
                 var evtInFeedback = _unitOfWork.Repository<Feedback>().GetAll().Where(x => x.EventId == item.Id);
-                double ratingAVG = 0;
-                double sumRating = 0;
-
+              
                 
 
                 if (evtInFeedback != null)
                 {
                     count = evtInFeedback.Count();
-                    foreach (var item2 in evtInFeedback)
-                    {
-                        sumRating = (double)(sumRating + item2.Rating);
-                    }
-                    if (count != 0)
-                    {
-                        ratingAVG = sumRating / count;
-                    }
+                  
 
                 }
 
                 DateTime startDate = (DateTime)item.StartDate;
                 DateTime endDate = (DateTime)item.EndDate;
-                
-                EventFeedbackResponse eventObj = new EventFeedbackResponse()
+
+                EventResponse eventObj = new EventResponse()
                 {
                     
                     Id = item.Id,
                     Name = item.Name,
                     Description = item.Description,
                     Image = item.Image,
-                    Rating = Math.Round((float)ratingAVG, 2),                   
+                    Rating = Math.Round((float)item.Rating, 2),                   
                     StartDate = startDate.Date.ToString("dd/MM/yyyy"),
                     EndDate = endDate.Date.ToString("dd/MM/yyyy"),
                     TotalFeedback = count
@@ -395,7 +405,7 @@ namespace eTourGuide.Service.Services.ImplService
                     listEvent.Add(eventObj);
                 }
             }
-            return listEvent;
+            return listEvent.ToList();
         }
 
         public async Task<int> UpdateEvent(int id, string Name, string Description, string Image, string Status, DateTime StartDate, DateTime EndDate)
@@ -447,45 +457,117 @@ namespace eTourGuide.Service.Services.ImplService
             }
             catch (Exception)
             {
-                throw new CrudException(System.Net.HttpStatusCode.BadRequest, "Insert Error!!!");
+                throw new Exception("Insert Error!!!");
             }
         }
 
         public async Task<int> UpdateStatusFromWatingToActive(int id)
         {
-            var evt = _unitOfWork.Repository<Event>().GetById(id);
+            int rs = 0;
+
+            //tìm event by id
+            Event evt = _unitOfWork.Repository<Event>().GetById(id);
+            //nếu tìm k thấy thì trả lỗi msg
             if (evt == null)
             {
                 throw new Exception("Cant Not Found This Event!");
             }
 
-            var evtTrans = _unitOfWork.Repository<eTourGuide.Data.Entity.ExhibitInEvent>().GetAll().Where(x => x.EventId == id);
+
+            //kiểm tra xem trong table exhibitinEvent có chưa
+            //var evtTrans = _unitOfWork.Repository<eTourGuide.Data.Entity.ExhibitInEvent>().GetAll().Where(x => x.EventId == id);
             EventInRoom eventInRoom = _unitOfWork.Repository<EventInRoom>().GetAll().Where(e => e.EventId== id).FirstOrDefault();
 
+            //nếu k có phòng cho event thì trả msg lỗi
             if (eventInRoom == null)
             {
-                throw new CrudException(System.Net.HttpStatusCode.BadRequest, "You must set room for this event to active!!!");
-            }else
-            {
-                if (evtTrans.ToList().Count > 0)
-                {
+                throw new Exception("You must set room for this event to active!!!");
+               
+            }
 
+          
+
+            if (eventInRoom != null)
+            {             
                     try
                     {
                         evt.Status = 2;
                         await _unitOfWork.CommitAsync();
-                        return (int)evt.Status;
+                        rs = 1;
+                        return rs;
+                        
                     }
                     catch (Exception)
                     {
-                        throw new CrudException(System.Net.HttpStatusCode.BadRequest, "Update Error!!!");
-                    }
-                }
-                else
+                    throw new Exception("Update Error Because Some Problem From Server!!!");
+                    
+                    }         
+            }
+            else
+            {
+                throw new Exception("Update Error Because Some Problem From Server!!!");
+               
+            }
+        }
+
+
+        public List<EventResponse> SearchEventForAdmin(string name)
+        {
+            List<EventResponse> listEventResponse = new List<EventResponse>();
+            if (String.IsNullOrEmpty(name))
+            {
+                listEventResponse = GetAllEventsForAdmin();
+                return listEventResponse;
+            }
+
+
+            string statusConvert = "";
+            var evt = _unitOfWork.Repository<Event>().GetAll().Where(e => e.Name.Contains(name) && e.IsDelete == false).AsQueryable();
+            
+            foreach (var item in evt)
+            {
+                if (item.Status == 0)
                 {
-                    throw new CrudException(System.Net.HttpStatusCode.BadRequest, "Update Error!!!");
+                    statusConvert = "New";
                 }
-            }                                
+                else if (item.Status == 1)
+                {
+                    statusConvert = "Waiting";
+                }
+                else if (item.Status == 2)
+                {
+                    statusConvert = "Active";
+                }
+                else if (item.Status == 3)
+                {
+                    statusConvert = "Disactive";
+                }
+                else if (item.Status == 4)
+                {
+                    statusConvert = "Closed";
+                }
+
+                DateTime createDate = (DateTime)item.CreateDate;
+                DateTime startDate = (DateTime)item.StartDate;
+                DateTime endDate = (DateTime)item.EndDate;
+                EventResponse eventResponse = new EventResponse()
+                {
+                    Id = item.Id,
+                    Name = item.Name,
+                    Description = item.Description,
+                    Image = item.Image,
+                    CreateDate = createDate.Date.ToString("yyyy-MM-dd"),
+                    StartDate = startDate.Date.ToString("yyyy-MM-dd"),
+                    EndDate = endDate.Date.ToString("yyyy-MM-dd"),
+                    Rating = Math.Round((float)item.Rating, 2),
+                    Status = statusConvert,
+                    //isDelete = (bool)item.IsDelete
+                };
+                listEventResponse.Add(eventResponse);
+
+
+            }
+            return listEventResponse.ToList();
         }
     }
 }

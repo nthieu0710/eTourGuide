@@ -15,6 +15,7 @@ namespace eTourGuide.Data.Entity
         public double? Rating { get; set; }
         public string Description { get; set; }
         public DateTime? DateTime { get; set; }
+        public bool? Status { get; set; }
 
         public virtual Event Event { get; set; }
         public virtual Exhibit Exhibitt { get; set; }

@@ -16,5 +16,6 @@ namespace eTourGuide.Service.Model.Response
         public string StartDate { get; set; }
         public string EndDate { get; set; }
         public Boolean isDelete { get; set; }
+        public int TotalFeedback { get; set; }
     }
 }

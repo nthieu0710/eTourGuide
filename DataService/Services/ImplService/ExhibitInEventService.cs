@@ -20,11 +20,12 @@ namespace eTourGuide.Service.Services.ImplService
             _unitOfWork = unitOfWork;
         }
 
-        public async Task<int> DeleteExhibitInEvent(int eventId, int exhibitId)
+        public async Task<int> DeleteExhibitInEvent(int exhibitId)
         {
             int rs = 0;
             //lấy obj trong bảng ExhibitInEvent chứa eventId và exhibitId đó
-            ExhibitInEvent exhibitInEvent = _unitOfWork.Repository<ExhibitInEvent>().GetAll().Where(e => e.EventId == eventId && e.ExhibitId == exhibitId).FirstOrDefault();
+            ExhibitInEvent exhibitInEvent = _unitOfWork.Repository<ExhibitInEvent>().GetAll().Where(e => e.ExhibitId == exhibitId).FirstOrDefault();
+            Event evt = _unitOfWork.Repository<Event>().GetAll().Where(e => e.Id == exhibitInEvent.EventId).FirstOrDefault();
             if (exhibitInEvent != null)
             {
                 try
@@ -32,12 +33,21 @@ namespace eTourGuide.Service.Services.ImplService
                     //Delete row trong bảng ExhibitInEvent
                     _unitOfWork.Repository<ExhibitInEvent>().Delete(exhibitInEvent);
 
-                    //Get event đó ra để set status thành Ready
+                    //Get exhibit đó ra để set status thành Ready
                     Exhibit exhibit = _unitOfWork.Repository<Exhibit>().GetById(exhibitId);
                     exhibit.Status = 0;
 
 
                     _unitOfWork.Repository<Exhibit>().Update(exhibit, exhibit.Id);
+                    await _unitOfWork.CommitAsync();
+
+
+                    var exhibitInEventList = _unitOfWork.Repository<ExhibitInEvent>().GetAll().Where(e => e.EventId == evt.Id).AsQueryable();
+                    if (exhibitInEventList.ToList().Count == 0)
+                    {
+                        evt.Status = 0;
+                        _unitOfWork.Repository<Event>().Update(evt, evt.Id);
+                    }
 
                     await _unitOfWork.CommitAsync();
 
@@ -46,51 +56,43 @@ namespace eTourGuide.Service.Services.ImplService
                 }
                 catch (Exception)
                 {
-                    throw new CrudException(System.Net.HttpStatusCode.BadRequest, "Can not delete exhibit in this event!!!");
+                    throw new Exception("Can not delete exhibit in this event!!!");
                 }
             }
             return rs;
         }
 
-        public List<ExhibitFeedbackResponse> GetExhibitInEvent(int id)
+        public List<ExhibitResponse> GetExhibitInEvent(int id)
         {
             var evt = _unitOfWork.Repository<Event>().GetById(id);
             if (evt == null)
             {
-                throw new CrudException(System.Net.HttpStatusCode.BadRequest, "Can not found Event!!!");
+                throw new Exception("Can not found Event!!!");
             }
 
             var evtTrans = _unitOfWork.Repository<ExhibitInEvent>().GetAll().Where(x => x.EventId == id);
-            List<ExhibitFeedbackResponse> listExhibit = new List<ExhibitFeedbackResponse>();
+            List<ExhibitResponse> listExhibit = new List<ExhibitResponse>();
             if (evtTrans != null)
             {
                 foreach (var item in evtTrans)
                 {
                     int count = 0;
                     var exhibitInFeedback = _unitOfWork.Repository<Feedback>().GetAll().Where(x => x.ExhibittId == item.Exhibit.Id);
-                    double ratingAVG = 0;
-                    double sumRating = 0;
+                   
                     if (exhibitInFeedback != null)
                     {
                         count = exhibitInFeedback.Count();
-                        foreach (var item2 in exhibitInFeedback)
-                        {
-                            sumRating = (double)(sumRating + item2.Rating);
-                        }
-                        if (count != 0)
-                        {
-                            ratingAVG = sumRating / count;
-                        }
+                       
 
                     }
 
-                    ExhibitFeedbackResponse obj = new ExhibitFeedbackResponse()
+                    ExhibitResponse obj = new ExhibitResponse()
                     {
                         Id = item.Exhibit.Id,
                         Name = item.Exhibit.Name,
                         Description = item.Exhibit.Description,
                         Image = item.Exhibit.Image,
-                        Rating = ratingAVG,
+                        Rating = (double)item.Exhibit.Rating,
                         TotalFeedback = count
                     };
                     listExhibit.Add(obj);
@@ -105,7 +107,7 @@ namespace eTourGuide.Service.Services.ImplService
             var evt = _unitOfWork.Repository<Event>().GetById(id);
             if (evt == null)
             {
-                throw new CrudException(System.Net.HttpStatusCode.BadRequest, "Can not found Event!!!");
+                throw new Exception("Can not found Event!!!");
             }
 
             var evtTrans = _unitOfWork.Repository<eTourGuide.Data.Entity.ExhibitInEvent>().GetAll().Where(x => x.EventId == id);
@@ -123,7 +125,7 @@ namespace eTourGuide.Service.Services.ImplService
                         Description = item.Exhibit.Description,
                         Image = item.Exhibit.Image,
                         CreateDate = createDate.Date.ToString("yyyy-MM-dd"),
-                        Rating = item.Exhibit.Rating,
+                        Rating = (double)item.Exhibit.Rating,
                         Status = "Added",
                         Duration = (TimeSpan)item.Exhibit.Duration
                     });

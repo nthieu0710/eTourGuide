@@ -9,9 +9,11 @@ namespace eTourGuide.Service.Services.InterfaceService
 {
     public interface IRoomService
     {
+        //dựa vào các exhibit user chọn để get ra đc phòng của chúng
         List<RoomResponse> GetRoomForExhibit(int[] exhibitId);
 
-        List<ExhibitFeedbackResponse> GetExhibitFromRoom(int roomId);
+        //dưa vào phòng đã chọn để show tất cả exhibit trong đó
+        List<ExhibitResponse> GetExhibitFromRoom(int roomId);
 
         List<RoomResponse> GetAllRoom();
 

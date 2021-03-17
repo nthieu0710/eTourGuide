@@ -26,15 +26,15 @@ namespace eTourGuide.API.Controllers
         [HttpGet("search-by-name")]
         public async Task<ActionResult<SearchResponse>> SearchByNameForUser(string name)
         {
-            try
-            {
-                var rs = _userService.ConvertSearchList(name);
+            /*try
+            {*/
+                var rs = _userService.SearchByName(name);
                 return Ok(rs);
-            }
+           /* }
             catch (Exception)
             {
                 throw new CrudException(System.Net.HttpStatusCode.BadRequest, "Can not find !!!");
-            }
+            }*/
         }
 
     }

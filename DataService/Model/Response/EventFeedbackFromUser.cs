@@ -13,5 +13,6 @@ namespace eTourGuide.Service.Model.Response
         public double Rating { get; set; }
         public string Description { get; set; }
         public string CreateDate { get; set; }
+        public bool Status { get; set; }
     }
 }

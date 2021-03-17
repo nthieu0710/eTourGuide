@@ -141,6 +141,7 @@ namespace eTourGuide.API
             builder.RegisterType<UserService>().As<IUserService>();
             builder.RegisterType<RoomService>().As<IRoomService>();
             builder.RegisterType<FileService>().As<IFileService>();
+            builder.RegisterType<AdminService>().As<IAdminService>();
             builder.RegisterType<UnitOfWork>().As<IUnitOfWork>();
             builder.RegisterGeneric(typeof(GenericRepository<>))
             .As(typeof(IGenericRepository<>))

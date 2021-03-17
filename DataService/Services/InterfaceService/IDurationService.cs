@@ -8,7 +8,7 @@ namespace eTourGuide.Service.Services.InterfaceService
     public interface IDurationService
     {
         //Nhập vào tgian có hạn của visitor => suggest ra list exhibit có thể đi
-        List<ExhibitFeedbackResponse> SuggestExhibitFromDuration(TimeSpan time);
+        List<ExhibitResponse> SuggestExhibitFromDuration(TimeSpan time);
 
 
         //tổng thời gian để dừng lại xem các exhibit ở 1 event
@@ -35,9 +35,5 @@ namespace eTourGuide.Service.Services.InterfaceService
 
 
 
-
-        //List<ExhibitFeedbackResponse> DurationForEvent(int id, TimeSpan time);
-
-        //List<ExhibitFeedbackResponse> DurationForTopic(int id, TimeSpan time);
     }
 }

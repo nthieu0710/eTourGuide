@@ -10,10 +10,10 @@ namespace eTourGuide.Service.Services.InterfaceService
     public interface IEventService
     {
         List<EventResponse> GetAllEventsForAdmin();
-        List<EventFeedbackResponse> GetListHightLightEvent();
-        List<EventResponseForUser> GetAllEventsForUser();
+        List<EventResponse> GetListHightLightEvent();
+        List<EventResponse> GetAllEventsForUser();
 
-        List<EventFeedbackResponse> GetCurrentEvent();
+        List<EventResponse> GetCurrentEvent();
 
         Task<int> AddEvent(string Name, string Description, string Image, DateTime StartDate, DateTime EndDate);
 
@@ -26,5 +26,7 @@ namespace eTourGuide.Service.Services.InterfaceService
         Task<int> AddExhibitToEvent(int eventId, int exhibitId);
 
         List<EventResponse> GetEventHasNoRoom();
+
+        List<EventResponse> SearchEventForAdmin(string name);
     }
 }

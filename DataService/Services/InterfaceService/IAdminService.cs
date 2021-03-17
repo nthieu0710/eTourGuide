@@ -5,9 +5,11 @@ using System.Text;
 
 namespace eTourGuide.Service.Services.InterfaceService
 {
-    public interface IUserService
+    public interface IAdminService
     {
-        //tìm kiếm event/topic/exhibit by name for user
-        List<SearchResponseForUser> SearchByName(string name);
+
+       
+        
+        
     }
 }

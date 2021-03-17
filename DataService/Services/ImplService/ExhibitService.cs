@@ -49,7 +49,7 @@ namespace eTourGuide.Service.Services.ImplService
             }
             catch (Exception)
             {
-                throw new CrudException(System.Net.HttpStatusCode.BadRequest, "Insert Error!!!");
+                throw new Exception("Insert Error!!!");
             }
             
         }
@@ -70,12 +70,12 @@ namespace eTourGuide.Service.Services.ImplService
                 }
                 catch (Exception)
                 {
-                    throw new CrudException(System.Net.HttpStatusCode.BadRequest, "Can not delete exhibit!!!");
+                    throw new Exception("Can not delete exhibit!!!");
                 }
             }
             else if (exhibit.Status == 1)
             {
-                throw new CrudException(System.Net.HttpStatusCode.BadRequest, "Can not delete exhibit!!!");
+                throw new Exception("Can not delete exhibit!!!");
             }
             return exhibit.Id;
         }
@@ -115,13 +115,13 @@ namespace eTourGuide.Service.Services.ImplService
             return listExhibitResponse.ToList();
         }
 
-        public List<ExhibitResponseForUser> GetAllExhibitsForUser()
+        public List<ExhibitResponse> GetAllExhibitsForUser()
         {
             var rs = _unitOfWork.Repository<Exhibit>().GetAll().Where(e => e.Status == 1 && e.IsDelete == false).AsQueryable();
-            List<ExhibitResponseForUser> listExhibitResponse = new List<ExhibitResponseForUser>();
+            List<ExhibitResponse> listExhibitResponse = new List<ExhibitResponse>();
             foreach (var item in rs)
-            {               
-                    ExhibitResponseForUser exhibitResponse = new ExhibitResponseForUser()
+            {
+                ExhibitResponse exhibitResponse = new ExhibitResponse()
                     {
                         Id = item.Id,
                         Name = item.Name,
@@ -157,37 +157,29 @@ namespace eTourGuide.Service.Services.ImplService
             return listExhibitResponse.ToList();
         }
 
-        public List<ExhibitFeedbackResponse> GetHightLightExhibit()
+        public List<ExhibitResponse> GetHightLightExhibit()
         {
             int highlightRate = 4;
             var exhibit = _unitOfWork.Repository<Exhibit>().GetAll().Where(e => e.Status == 1 && e.IsDelete == false).AsQueryable();
-            List<ExhibitFeedbackResponse> listExhibit = new List<ExhibitFeedbackResponse>();
+            List<ExhibitResponse> listExhibit = new List<ExhibitResponse>();
             foreach (var item in exhibit)
             {
                 int count = 0;
                 var exhibitInFeedback = _unitOfWork.Repository<Feedback>().GetAll().Where(x => x.ExhibittId == item.Id);
-                double ratingAVG = 0;
-                double sumRating = 0;
+              
                 if (exhibitInFeedback != null)
                 {
                     count = exhibitInFeedback.Count();
-                    foreach (var item2 in exhibitInFeedback)
-                    {
-                        sumRating = (double)(sumRating + item2.Rating);
-                    }
-                    if (count != 0)
-                    {
-                        ratingAVG = sumRating / count;
-                    }
+                 
 
                 }
-                ExhibitFeedbackResponse obj = new ExhibitFeedbackResponse()
+                ExhibitResponse obj = new ExhibitResponse()
                 {
                     Id = item.Id,
                     Name = item.Name,
                     Description = item.Description,
                     Image = item.Image,
-                    Rating = ratingAVG,
+                    Rating = (double)item.Rating,
                     TotalFeedback = count 
                 };
                 if (obj.Rating >= highlightRate)
@@ -195,21 +187,21 @@ namespace eTourGuide.Service.Services.ImplService
                     listExhibit.Add(obj);
                 }
             }
-            return listExhibit;
+            return listExhibit.ToList();
         }
 
-        public List<ExhibitResponseForUser> GetNewExhibit()
+        public List<ExhibitResponse> GetNewExhibit()
         {
             int numberOfExhibitToDisplays = 10;
             var rs = _unitOfWork.Repository<Exhibit>().GetAll().Where(e => e.Status == 1 && e.IsDelete == false).AsQueryable();
             rs = rs.OrderByDescending(exhibit => exhibit.CreateDate);
             int count = 0;
-            List<ExhibitResponseForUser> listExhibitResponse = new List<ExhibitResponseForUser>();
+            List<ExhibitResponse> listExhibitResponse = new List<ExhibitResponse>();
             foreach (var item in rs)
             {
-             
-                
-                    ExhibitResponseForUser exhibitResponse = new ExhibitResponseForUser()
+
+
+                    ExhibitResponse exhibitResponse = new ExhibitResponse()
                     {
                         Id = item.Id,
                         Name = item.Name,
@@ -245,8 +237,50 @@ namespace eTourGuide.Service.Services.ImplService
             }
             catch (Exception)
             {
-                throw new CrudException(System.Net.HttpStatusCode.BadRequest, "Update Error!!!");
+                throw new Exception("Update Error!!!");
             }
+        }
+
+
+        public List<ExhibitResponse> SearchExhibitForAdmin(string name)
+        {
+            List<ExhibitResponse> listExhibitResponse = new List<ExhibitResponse>();
+            if(String.IsNullOrEmpty(name))
+            {
+                listExhibitResponse = GetAllExhibitForAdmin();
+                return listExhibitResponse;
+            }
+            string statusConvert = "";
+            var exhibit = _unitOfWork.Repository<Exhibit>().GetAll().Where(e => e.Name.Contains(name) && e.IsDelete == false).AsQueryable();
+            
+            foreach (var item in exhibit)
+            {
+                if (item.Status == 0)
+                {
+                    statusConvert = "Ready";
+                }
+                else if (item.Status == 1)
+                {
+                    statusConvert = "Added";
+                }
+
+                DateTime createDate = (DateTime)item.CreateDate;
+
+                ExhibitResponse exhibitResponse = new ExhibitResponse()
+                {
+                    Id = item.Id,
+                    Name = item.Name,
+                    Description = item.Description,
+                    Image = item.Image,
+                    CreateDate = createDate.Date.ToString("yyyy-MM-dd"),
+                    Rating = (float)item.Rating,
+                    Status = statusConvert,
+                    Duration = (TimeSpan)item.Duration,
+                    isDelete = (bool)item.IsDelete
+                };
+                listExhibitResponse.Add(exhibitResponse);
+            }
+            return listExhibitResponse.ToList();
         }
     }
 }

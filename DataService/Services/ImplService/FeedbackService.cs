@@ -22,22 +22,26 @@ namespace eTourGuide.Service.Services.ImplService
 
         
 
-        public List<Feedback> GetFeedbacksEventForUserById(int Id)
+        public List<EventFeedbackFromUser> GetFeedbacksEventForUserById(int Id)
         {
-            var eventFeedbacks = _unitOfWork.Repository<Feedback>().GetAll().Where(x => x.EventId == Id);
-            List<Feedback> listFeedback = new List<Feedback>();
+            var eventFeedbacks = _unitOfWork.Repository<Feedback>().GetAll().Where(x => x.EventId == Id && x.Status  == true);
+            List<EventFeedbackFromUser> listFeedback = new List<EventFeedbackFromUser>();
             if (eventFeedbacks != null)
             {
                 foreach (var item in eventFeedbacks)
                 {
-                    Feedback feedback = new Feedback()
+
+                    DateTime dateTime = (DateTime)item.DateTime;
+                      
+                    EventFeedbackFromUser feedback = new EventFeedbackFromUser()
                     {
                         Id = item.Id,
-                        EventId = item.EventId,
+                        EventId = (int)item.EventId,
                         VisitorName = item.VisitorName,
-                        Rating = item.Rating,
+                        Rating = (double)item.Rating,
                         Description = item.Description,
-                        DateTime = item.DateTime
+                        CreateDate = dateTime.Date.ToString("dd/MM/yyyy"),
+                        Status = (bool)item.Status
                     };
                     listFeedback.Add(feedback);
                 }
@@ -53,6 +57,9 @@ namespace eTourGuide.Service.Services.ImplService
             {
                 var evt = _unitOfWork.Repository<Event>().GetAll().Where(x => x.Id == item.EventId).FirstOrDefault();
                 DateTime createDate = (DateTime)item.DateTime;
+                
+                
+
                 EventFeedbackFromUser rs = new EventFeedbackFromUser
                 {
                     Id = item.Id,
@@ -61,29 +68,34 @@ namespace eTourGuide.Service.Services.ImplService
                     VisitorName = item.VisitorName,
                     Rating = (double)item.Rating,
                     Description = item.Description,
-                    CreateDate = createDate.Date.ToString("yyyy-MM-dd")
+                    CreateDate = createDate.Date.ToString("yyyy-MM-dd"),
+                    Status = (bool)item.Status
                 };
                 listRs.Add(rs);
             }
             return listRs;
         }
 
-        public List<Feedback> GetFeedbacksExhibitcForUserById(int Id)
+        public List<ExhibitFeedbackFromUser> GetFeedbacksExhibitcForUserById(int Id)
         {
-            var exhibitFeedbacks = _unitOfWork.Repository<Feedback>().GetAll().Where(x => x.ExhibittId == Id);
-            List<Feedback> listFeedback = new List<Feedback>();
+            var exhibitFeedbacks = _unitOfWork.Repository<Feedback>().GetAll().Where(x => x.ExhibittId == Id && x.Status == true);
+            List<ExhibitFeedbackFromUser> listFeedback = new List<ExhibitFeedbackFromUser>();
             if (exhibitFeedbacks != null)
             {
                 foreach (var item in exhibitFeedbacks)
                 {
-                    Feedback feedback = new Feedback()
+                    DateTime createDate = (DateTime)item.DateTime;
+                    
+
+                    ExhibitFeedbackFromUser feedback = new ExhibitFeedbackFromUser()
                     {
                         Id = item.Id,
-                        ExhibittId = item.ExhibittId,
+                        ExhibitId = (int)item.ExhibittId,
                         VisitorName = item.VisitorName,
-                        Rating = item.Rating,
+                        Rating = (double)item.Rating,
                         Description = item.Description,
-                        DateTime = item.DateTime
+                        CreateDate = createDate.Date.ToString("dd/MM/yyyy"),
+                        Status = (bool)item.Status
                     };
                     listFeedback.Add(feedback);
                 }
@@ -92,22 +104,26 @@ namespace eTourGuide.Service.Services.ImplService
             
         }
 
-        public List<Feedback> GetFeedbacksTopicForUserById(int Id)
+        public List<TopicFeedbackFromUser> GetFeedbacksTopicForUserById(int Id)
         {
-            var topicFeedbacks = _unitOfWork.Repository<Feedback>().GetAll().Where(x => x.TopicId == Id);
-            List<Feedback> listFeedback = new List<Feedback>();
+            var topicFeedbacks = _unitOfWork.Repository<Feedback>().GetAll().Where(x => x.TopicId == Id && x.Status == true);
+            List<TopicFeedbackFromUser> listFeedback = new List<TopicFeedbackFromUser>();
             if (topicFeedbacks != null)
             {
                 foreach (var item in topicFeedbacks)
                 {
-                    Feedback feedback = new Feedback()
+                    DateTime createDate = (DateTime)item.DateTime;
+
+
+                    TopicFeedbackFromUser feedback = new TopicFeedbackFromUser()
                     {
                         Id = item.Id,
-                        TopicId = item.TopicId,
+                        TopicId = (int)item.TopicId,
                         VisitorName = item.VisitorName,
-                        Rating = item.Rating,
+                        Rating = (double)item.Rating,
                         Description = item.Description,
-                        DateTime = item.DateTime
+                        CreateDate = createDate.Date.ToString("dd/MM/yyyy"),
+                        Status = (bool)item.Status
                     };
                     listFeedback.Add(feedback);
                 }
@@ -123,6 +139,7 @@ namespace eTourGuide.Service.Services.ImplService
             {
                 var exhibit = _unitOfWork.Repository<Exhibit>().GetAll().Where(x => x.Id == item.ExhibittId).FirstOrDefault();
                 DateTime createDate = (DateTime)item.DateTime;
+               
                 ExhibitFeedbackFromUser rs = new ExhibitFeedbackFromUser
                 {
                     Id = item.Id,
@@ -131,7 +148,8 @@ namespace eTourGuide.Service.Services.ImplService
                     VisitorName = item.VisitorName,
                     Rating = (double)item.Rating,
                     Description = item.Description,
-                    CreateDate = createDate.Date.ToString("yyyy-MM-dd")
+                    CreateDate = createDate.Date.ToString("yyyy-MM-dd"),
+                    Status = (bool)item.Status
                 };
                 listRs.Add(rs);
             }
@@ -146,6 +164,7 @@ namespace eTourGuide.Service.Services.ImplService
             {
                 var topic = _unitOfWork.Repository<Topic>().GetAll().Where(x => x.Id == item.TopicId).FirstOrDefault();
                 DateTime createDate = (DateTime)item.DateTime;
+                
                 TopicFeedbackFromUser rs = new TopicFeedbackFromUser
                 {
                     Id = item.Id,
@@ -154,7 +173,8 @@ namespace eTourGuide.Service.Services.ImplService
                     VisitorName = item.VisitorName,
                     Rating = (double)item.Rating,
                     Description = item.Description,
-                    CreateDate = createDate.Date.ToString("yyyy-MM-dd")
+                    CreateDate = createDate.Date.ToString("yyyy-MM-dd"),
+                    Status = (bool)item.Status
                 };
                 listRs.Add(rs);
             }
@@ -177,7 +197,8 @@ namespace eTourGuide.Service.Services.ImplService
                 VisitorName = visitorName,
                 Rating = rating,
                 Description = description,
-                DateTime = dtnew
+                DateTime = dtnew,
+                Status = true
             };
 
             //tính toán rating trung bình 
@@ -225,8 +246,8 @@ namespace eTourGuide.Service.Services.ImplService
             }
             catch (Exception)
             {
-                throw new CrudException(System.Net.HttpStatusCode.BadRequest, "Insert Feedback Error!!!");
-            }
+                throw new Exception("Insert Feedback Error!!!");
+            }      
         }
 
         public async Task<int> CreateUserFeedbackForEvent(int eventId, string visitorName, double rating, string description)
@@ -243,7 +264,8 @@ namespace eTourGuide.Service.Services.ImplService
                 VisitorName = visitorName,
                 Rating = rating,
                 Description = description,
-                DateTime = dtnew
+                DateTime = dtnew,
+                Status = true
             };
 
             //tính toán rating trung bình 
@@ -290,7 +312,7 @@ namespace eTourGuide.Service.Services.ImplService
             }
             catch (Exception)
             {
-                throw new CrudException(System.Net.HttpStatusCode.BadRequest, "Insert Feedback Error!!!");
+                throw new Exception("Insert Feedback Error!!!");
             }
         }
 
@@ -308,7 +330,8 @@ namespace eTourGuide.Service.Services.ImplService
                 VisitorName = visitorName,
                 Rating = rating,
                 Description = description,
-                DateTime = dtnew
+                DateTime = dtnew,
+                Status = true
             };
 
             //tính toán rating trung bình 
@@ -358,7 +381,57 @@ namespace eTourGuide.Service.Services.ImplService
             }
             catch (Exception)
             {
-                throw new CrudException(System.Net.HttpStatusCode.BadRequest, "Insert Feedback Error!!!");
+                throw new Exception("Insert Feedback Error!!!");
+            }
+        }
+
+
+
+        public async Task<int> DisableFeedbackForAdmin(int feedbackID)
+        {
+            Feedback feedback = _unitOfWork.Repository<Feedback>().GetById(feedbackID);
+            if (feedback == null)
+            {
+                throw new Exception("Cannot find this feedback!!!");
+            }
+
+            int rs = 0;
+
+            try
+            {
+                feedback.Status = false;
+                _unitOfWork.Repository<Feedback>().Update(feedback, feedback.Id);
+                await _unitOfWork.CommitAsync();
+                rs = 1;
+                return rs;
+            }
+            catch (Exception)
+            {
+                throw new Exception("Disable Feedback Error!!!");
+            }
+        }
+
+        public async Task<int> EnableFeedbackForAdmin(int feedbackID)
+        {
+            Feedback feedback = _unitOfWork.Repository<Feedback>().GetById(feedbackID);
+            if (feedback == null)
+            {
+                throw new Exception("Cannot find this feedback!!!");
+            }
+
+            int rs = 1;
+
+            try
+            {
+                feedback.Status = true;
+                _unitOfWork.Repository<Feedback>().Update(feedback, feedback.Id);
+                await _unitOfWork.CommitAsync();
+                rs = 1;
+                return rs;
+            }
+            catch (Exception)
+            {
+                throw new Exception("Enable Feedback Error!!!");
             }
         }
     }

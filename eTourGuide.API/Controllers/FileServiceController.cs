@@ -20,38 +20,23 @@ namespace eTourGuide.API.Controllers
             _fileService = fileService;
         }
 
-        /*[HttpPost("upload/image")]
-        public async Task<ActionResult<bool>> UploadImageToServer(IFormFile File)
-        {
-
-            try
-            {
-                var rs = await _fileService.UploadImage(File);
-
-                return Ok(rs);
-            }
-            catch (Exception e)
-            {
-                return BadRequest("Can Not Upload Image!");
-            }
-
-        }*/
+       
 
 
         [HttpPost("upload/image")]
         public async Task<ActionResult<string>> UploadImageToServer(string image, string targetUrl)
         {
 
-            try
-            {
+            /*try
+            {*/
                 var rs = await _fileService.UploadImageToServer(image, targetUrl);
 
                 return Ok(rs);
-            }
+            /*}
             catch (Exception e)
             {
                 return BadRequest("Can Not Upload Image!");
-            }
+            }*/
 
         }
 

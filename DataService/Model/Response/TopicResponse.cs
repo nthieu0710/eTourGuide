@@ -15,5 +15,7 @@ namespace eTourGuide.Service.Model.Response
         public float Rating { get; set; }
         public string Status { get; set; }
         public Boolean isDelete { get; set; }
+        public int TotalFeedback { get; set; }
+
     }
 }

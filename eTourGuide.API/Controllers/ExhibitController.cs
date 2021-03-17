@@ -29,30 +29,30 @@ namespace eTourGuide.API.Controllers
         [HttpPost("add/exhibit")]
         public async Task<ActionResult<int>> InsertExhibit([FromBody] PostExhibitRequest model)
         {
-            try
-            {
+           /* try
+            {*/
                 var rs = await _exhibitService.AddExhibit(model.Name, model.Description, model.Image, model.Duration);
                 return Ok(rs);
-            }
+            /*}
             catch (Exception)
             {
-                return BadRequest("Can Not Insert Exhibit!");
-            }
+                throw new CrudException(System.Net.HttpStatusCode.BadRequest, "Add Exhibit to Topic Error!!!");
+            }*/
         }
 
         //Controller for Update Exhibit
         [HttpPut("id={id}")]
         public async Task<ActionResult<int>> UpdateExhibit([FromBody] PutExhibitRequest model, int id)
         {
-            try
-            {
+           /* try
+            {*/
                 var rs = await _exhibitService.UpdateExhibit(id, model.Name, model.Description, model.Image, model.Duration);
                 return Ok(rs);
-            }
+           /* }
             catch (Exception)
             {
-                return BadRequest("Can Not Update Exhibit!");
-            }
+                throw new CrudException(System.Net.HttpStatusCode.BadRequest, "Add Exhibit to Topic Error!!!");
+            }*/
         }
 
 
@@ -60,15 +60,15 @@ namespace eTourGuide.API.Controllers
         public async Task<ActionResult<int>> DeleteExhibit(int id)
         {
 
-            try
-            {
+            /*try
+            {*/
                 var rs = await _exhibitService.DeleteExhibit(id);
                 return Ok(rs);
-            }
+           /* }
             catch (Exception)
             {
-                return BadRequest("Can Not Delete Exhibit!");
-            }
+                throw new CrudException(System.Net.HttpStatusCode.BadRequest, "Add Exhibit to Topic Error!!!");
+            }*/
         }
 
 
@@ -76,80 +76,97 @@ namespace eTourGuide.API.Controllers
         [HttpGet("get/all/exhibit/for/admin")]
         public ActionResult<List<ExhibitResponse>> GetAllExhibitsForAdmin()
         {
-            try
-            {
+           /* try
+            {*/
                 var rs = _exhibitService.GetAllExhibitForAdmin();
                 return Ok(rs);
-            }
+            /*}
             catch (Exception)
             {
                 throw new CrudException(System.Net.HttpStatusCode.BadRequest, "Get Exhibits Error!!!");
-            }
+            }*/
         }
 
 
 
         [HttpGet("get/available/exhibit")]
-        public ActionResult<List<ExhibitFeedbackResponse>> GetAvailableExhibit()
+        public ActionResult<List<ExhibitResponse>> GetAvailableExhibit()
         {
-            try
-            {
+           /* try
+            {*/
                 var rs = _exhibitService.GetAvailableExhibit(); ;
                 return Ok(rs);
-            }
+           /* }
             catch (Exception)
             {
                 throw new CrudException(System.Net.HttpStatusCode.BadRequest, "Get Highlight Exhibit Error!!!");
-            }
+            }*/
         }
 
 
         //Get Highlight Object Rating > 4
         [HttpGet("suggest/highlight/exhibit")]
-        public ActionResult<List<ExhibitFeedbackResponse>> GetHighLightObject()
+        public ActionResult<List<ExhibitResponse>> GetHighLightObject()
         {
-            try
-            {
+           /* try
+            {*/
                 var rs = _exhibitService.GetHightLightExhibit(); ;
                 return Ok(rs);
-            }
+           /* }
             catch (Exception e)
             {
                 e = e.InnerException;
                 throw new CrudException(System.Net.HttpStatusCode.BadRequest, "Get Highlight Exhibit Error!!!");
-            }
+            }*/
         }
 
 
         //Controller for GetAllTopcics for User
         [HttpGet]
-        public ActionResult<List<ExhibitResponseForUser>> GetAllTopcicsForUser()
+        public ActionResult<List<ExhibitResponse>> GetAllTopcicsForUser()
         {
-            try
-            {
+           /* try
+            {*/
                 var rs = _exhibitService.GetAllExhibitsForUser();
                 return Ok(rs);
-            }
+           /* }
             catch (Exception)
             {
                 throw new CrudException(System.Net.HttpStatusCode.BadRequest, "Get Exhibit Error!!!");
-            }
+            }*/
         }
 
 
 
         [HttpGet("recently/createdate/exhibit")]
-        public ActionResult<List<ExhibitResponseForUser>> GetRecentlyExhibit()
+        public ActionResult<List<ExhibitResponse>> GetRecentlyExhibit()
         {
-            try
-            {
+          /*  try
+            {*/
                 var rs = _exhibitService.GetNewExhibit(); ;
                 return Ok(rs);
-            }
+           /* }
             catch (Exception)
             {
                 throw new CrudException(System.Net.HttpStatusCode.BadRequest, "Get Highlight Exhibit Error!!!");
-            }
+            }*/
+        }
+
+
+
+        //Search by name
+        [HttpGet("search-exhibit-by-name-for-admin")]
+        public ActionResult<List<ExhibitResponse>> SearchExhibitByNameForAdmin(string name)
+        {
+           /* try
+            {*/
+                var rs = _exhibitService.SearchExhibitForAdmin(name);
+                return Ok(rs);
+           /* }
+            catch (Exception)
+            {
+                throw new CrudException(System.Net.HttpStatusCode.BadRequest, "Can not find !!!");
+            }*/
         }
 
     }

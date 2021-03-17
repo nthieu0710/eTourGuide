@@ -8,11 +8,11 @@ namespace eTourGuide.Service.Services.InterfaceService
 {
     public interface IExhibitInTopicService
     {
-        List<ExhibitFeedbackResponse> GetExhibitInTopic(int id);
+        List<ExhibitResponse> GetExhibitInTopic(int id);
 
         List<ExhibitResponse> GetExhibitInTopicForAdmin(int id);
 
-        Task<int> DeleteExhibitIntTopic(int topicId, int exhibitId);
+        Task<int> DeleteExhibitIntTopic(int exhibitId);
 
        
     }

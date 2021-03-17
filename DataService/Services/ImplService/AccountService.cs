@@ -84,7 +84,7 @@ namespace eTourGuide.Service.Servcies.ImplService
             }
             catch (Exception)
             {
-                throw new CrudException(System.Net.HttpStatusCode.BadRequest, "Error to verify account eTourGuide!!!");
+                throw new Exception("Error to verify account eTourGuide!!!");
             }
         }
 

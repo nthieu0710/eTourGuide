@@ -84,7 +84,6 @@ namespace eTourGuide.Data.Context
                 entity.HasOne(d => d.Room)
                     .WithMany(p => p.EventInRooms)
                     .HasForeignKey(d => d.RoomId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_EventInRoom_Room1");
             });
 
@@ -115,7 +114,6 @@ namespace eTourGuide.Data.Context
                 entity.HasOne(d => d.Exhibit)
                     .WithMany(p => p.ExhibitInEvents)
                     .HasForeignKey(d => d.ExhibitId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_ExhibitInEvent_Exhibit");
             });
 
@@ -130,7 +128,6 @@ namespace eTourGuide.Data.Context
                 entity.HasOne(d => d.Exhibit)
                     .WithMany(p => p.ExhibitInTopics)
                     .HasForeignKey(d => d.ExhibitId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_ExhibitInTopic_Exhibit");
 
                 entity.HasOne(d => d.Topic)
@@ -209,7 +206,6 @@ namespace eTourGuide.Data.Context
                 entity.HasOne(d => d.Room)
                     .WithMany(p => p.TopicInRooms)
                     .HasForeignKey(d => d.RoomId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_TopicInRoom_Room1");
 
                 entity.HasOne(d => d.Topic)

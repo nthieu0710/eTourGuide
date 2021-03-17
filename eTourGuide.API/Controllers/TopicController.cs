@@ -27,30 +27,30 @@ namespace eTourGuide.API.Controllers
         [HttpGet("admin")]
         public ActionResult<List<TopicResponse>> GetAllTopcics()
         {
-            try
-            {
+           /* try
+            {*/
                 var rs = _topicService.GetAllTopics();
                 return Ok(rs);
-            }
+           /* }
             catch (Exception)
             {
                 throw new CrudException(System.Net.HttpStatusCode.BadRequest, "Get Topics Error!!!");
-            }
+            }*/
         }
 
         //Controller for GetAllTopcics for User
         [HttpGet]
-        public ActionResult<List<TopicResponseForUser>> GetAllTopcicsForUser()
+        public ActionResult<List<TopicResponse>> GetAllTopcicsForUser()
         {
-            try
-            {
+           /* try
+            {*/
                 var rs = _topicService.GetAllTopicsForUser();
                 return Ok(rs);
-            }
+            /*}
             catch (Exception)
             {
                 throw new CrudException(System.Net.HttpStatusCode.BadRequest, "Get Topics Error!!!");
-            }
+            }*/
         }
 
         //Controlerr for Get by Id
@@ -71,17 +71,17 @@ namespace eTourGuide.API.Controllers
 
         //Get Highlight Topic Rating > 4
         [HttpGet("suggest/highlight/topic")]
-        public ActionResult<List<TopicFeedbackResponse>> GetHighLightTopic()
+        public ActionResult<List<TopicResponse>> GetHighLightTopic()
         {
-            try
-            {
+           /* try
+            {*/
                 var rs = _topicService.GetHightLightTopic();
                 return Ok(rs);
-            }
+            /*}
             catch (Exception)
             {
                 throw new CrudException(System.Net.HttpStatusCode.BadRequest, "Get Highlight Topic Error!!!");
-            }
+            }*/
         }
 
 
@@ -90,16 +90,16 @@ namespace eTourGuide.API.Controllers
         public async Task<ActionResult<int>> InsertTopic([FromBody] PostTopicRequest model)
         {
 
-            try
-            {
+            /*try
+            {*/
                 var rs = await _topicService.AddTopic(model.Name, model.Description, model.Image, model.StartDate);
                 
                 return Ok(rs);
-            }
+            /*}
             catch (Exception)
             {
-                return BadRequest("Can Not Insert Topic!");
-            }
+                throw new CrudException(System.Net.HttpStatusCode.BadRequest, "Add Exhibit to Topic Error!!!");
+            }*/
 
         }
 
@@ -110,32 +110,26 @@ namespace eTourGuide.API.Controllers
         public async Task<ActionResult<int>> UpdateTopic([FromBody] PutTopicRequest model, int id)
         {
 
-            try
-            {
+            /*try
+            {*/
                 var rs = await _topicService.UpdateTopic(id, model.Name, model.Description, model.Image, model.StartDate, model.Status);
                 return Ok(rs);
-            }
+           /* }
             catch (Exception)
             {
 
-                return BadRequest("Can Not Update Topic!");
-            }
+                throw new CrudException(System.Net.HttpStatusCode.BadRequest, "Add Exhibit to Topic Error!!!");
+            }*/
         }
 
         [HttpPut("active/topic/id={id}")]
         public async Task<ActionResult<int>> ActiveTopic(int id)
         {
 
-            try
-            {
+            
                 var rs = await _topicService.UpdateStatusFromWatingToActive(id);
                 return Ok(rs);
-            }
-            catch (Exception)
-            {
-
-                return BadRequest("Can Not Update Topic!");
-            }
+            
         }
 
 
@@ -160,30 +154,46 @@ namespace eTourGuide.API.Controllers
         [HttpPost("add/exhibit/to/topic")]
         public async Task<ActionResult<int>> AddExhibitToTopicForAdmin([FromBody] PostExhibitInTopicRequest model)
         {
-            try
-            {
+            /*try
+            {*/
                 var rs = await _topicService.AddExhibitToTopic(model.TopicId, model.ExhibitId);
                 return Ok(rs);
-            }
+           /* }
             catch (Exception)
             {
                 throw new CrudException(System.Net.HttpStatusCode.BadRequest, "Add Exhibit to Topic Error!!!");
-            }
+            }*/
         }
 
 
         [HttpGet("get/topic/has/no/room")]
         public ActionResult<List<TopicResponse>> GetTopicThatHasNoRoom()
         {
-            try
-            {
+            /*try
+            {*/
                 var rs = _topicService.GetTopicHasNoRoom();
                 return Ok(rs);
-            }
+            /*}
             catch (Exception)
             {
                 throw new CrudException(System.Net.HttpStatusCode.BadRequest, "Get Topics Error!!!");
-            }
+            }*/
+        }
+
+
+        //Search topicc by name
+        [HttpGet("search-topic-by-name-for-admin")]
+        public ActionResult<List<TopicResponse>> SearchTopicByNameForAdmin(string name)
+        {
+           /* try
+            {*/
+                var rs = _topicService.SearchTopicForAdmin(name);
+                return Ok(rs);
+           /* }
+            catch (Exception)
+            {
+                throw new CrudException(System.Net.HttpStatusCode.BadRequest, "Can not find !!!");
+            }*/
         }
 
     }

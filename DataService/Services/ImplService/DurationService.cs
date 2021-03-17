@@ -78,12 +78,12 @@ namespace eTourGuide.Service.Services.ImplService
 
 
         //Hàm trả về list Exhibit khi user chọn thời gian xem
-        public List<ExhibitFeedbackResponse> SuggestExhibitFromDuration(TimeSpan time)
+        public List<ExhibitResponse> SuggestExhibitFromDuration(TimeSpan time)
         {
             var rs = _unitOfWork.Repository<Exhibit>().GetAll().Where(e => e.Status == 1).AsQueryable();
             rs = rs.OrderByDescending(exhibit => exhibit.Rating);
             TimeSpan duration = new TimeSpan(00, 00, 00);
-            List<ExhibitFeedbackResponse> listExhibitForDuration = new List<ExhibitFeedbackResponse>();
+            List<ExhibitResponse> listExhibitForDuration = new List<ExhibitResponse>();
             foreach (var item in rs)
             {
                 int count = 0;
@@ -92,7 +92,7 @@ namespace eTourGuide.Service.Services.ImplService
                 {
                     count = exhibitInFeedback.Count();
                 }
-                ExhibitFeedbackResponse exhibitRes = new ExhibitFeedbackResponse()
+                ExhibitResponse exhibitRes = new ExhibitResponse()
                 {
                     Id = item.Id,
                     Name = item.Name,
@@ -113,7 +113,7 @@ namespace eTourGuide.Service.Services.ImplService
 
             while (duration <= time)
             {
-                listExhibitForDuration = new List<ExhibitFeedbackResponse>();
+                listExhibitForDuration = new List<ExhibitResponse>();
                 foreach (var item in rs)
                 {
                     duration = (TimeSpan)(duration + item.Duration);
@@ -127,7 +127,7 @@ namespace eTourGuide.Service.Services.ImplService
                     {
                         count = exhibitInFeedback.Count();
                     }
-                    ExhibitFeedbackResponse exhibitRes = new ExhibitFeedbackResponse()
+                    ExhibitResponse exhibitRes = new ExhibitResponse()
                     {
                         Id = item.Id,
                         Name = item.Name,
@@ -612,12 +612,12 @@ namespace eTourGuide.Service.Services.ImplService
             //định nghĩa function tỉ lệ
             double distanceToGo = (TotalDistance(room) * weightConverted * velocityAVG * 100) / 60;
             
-            TimeSpan convert = TimeSpan.FromSeconds(distanceToGo);
+            TimeSpan convert = TimeSpan.FromMinutes(distanceToGo);
             TimeSpan totalTime = convert + timeForVisitExhibit;
 
             //làm tròn só phút đến 5p
-            totalTime = TimeSpan.FromMinutes(5 * Math.Ceiling(totalTime.TotalMinutes / 5));
-
+            /*totalTime = TimeSpan.FromMinutes(5 * Math.Ceiling(totalTime.TotalMinutes / 5));*/
+            totalTime = TimeSpan.FromMinutes(Math.Ceiling(totalTime.TotalMinutes));
             return totalTime;
         }
 
@@ -635,12 +635,12 @@ namespace eTourGuide.Service.Services.ImplService
             double velocityAVG = 5;
             double distanceToGo = (TotalDistance(room) * weightConverted * velocityAVG * 100) / 60;
             
-            TimeSpan convert = TimeSpan.FromSeconds(distanceToGo);
+            TimeSpan convert = TimeSpan.FromMinutes(distanceToGo);
             TimeSpan totalTime = convert + timeForVisitExhibit;
 
             //làm tròn só phút đến 5p
-            totalTime = TimeSpan.FromMinutes(5 * Math.Ceiling(totalTime.TotalMinutes / 5));
-
+            //totalTime = TimeSpan.FromMinutes(5 * Math.Ceiling(totalTime.TotalMinutes / 5));
+            totalTime = TimeSpan.FromMinutes(Math.Ceiling(totalTime.TotalMinutes));
             return totalTime;
         }
 

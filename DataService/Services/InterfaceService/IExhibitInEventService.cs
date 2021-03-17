@@ -9,11 +9,11 @@ namespace eTourGuide.Service.Services.InterfaceService
 {
     public interface IExhibitInEventService
     {
-        List<ExhibitFeedbackResponse> GetExhibitInEvent(int id);
+        List<ExhibitResponse> GetExhibitInEvent(int id);
 
 
         List<ExhibitResponse> GetExhibitInEventForAdmin(int id);
 
-        Task<int> DeleteExhibitInEvent(int eventId, int exhibitId);
+        Task<int> DeleteExhibitInEvent(int exhibitId);
     }
 }

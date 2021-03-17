@@ -15,14 +15,16 @@ namespace eTourGuide.Service.Services.InterfaceService
 
         Task<int> DeleteExhibit(int id);
 
-        List<ExhibitFeedbackResponse> GetHightLightExhibit();
+        List<ExhibitResponse> GetHightLightExhibit();
 
-        List<ExhibitResponseForUser> GetAllExhibitsForUser();
+        List<ExhibitResponse> GetAllExhibitsForUser();
 
-        List<ExhibitResponseForUser> GetNewExhibit();
+        List<ExhibitResponse> GetNewExhibit();
 
         List<ExhibitResponse> GetAvailableExhibit();
 
         List<ExhibitResponse> GetAllExhibitForAdmin();
+
+        List<ExhibitResponse> SearchExhibitForAdmin(string name);
     }
 }

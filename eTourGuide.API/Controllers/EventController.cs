@@ -29,62 +29,62 @@ namespace eTourGuide.API.Controllers
         public async Task<ActionResult<int>> InsertEvent([FromBody] PostEventRequest model)
         {
 
-            try
-            {
+           /* try
+            {*/
                 var rs = await _eventService.AddEvent(model.Name, model.Description, model.Image, model.StartDate, model.EndDate);
                 return Ok(rs);
-            }
+            /*}
             catch (Exception)
             {
 
-                return BadRequest("Can Not Insert Event!");
-            }
+                throw new CrudException(System.Net.HttpStatusCode.BadRequest, "Add Exhibit to Topic Error!!!");
+            }*/
 
         }
 
         //Get Highlight Event Rating > 4
         [HttpGet("suggest/highlight/event")]
-        public ActionResult<List<EventFeedbackResponse>> GetHighLightEvent()
+        public ActionResult<List<EventResponse>> GetHighLightEvent()
         {
-            try
-            {
+           /* try
+            {*/
                 var rs = _eventService.GetListHightLightEvent();
                 return Ok(rs);
-            }
+           /* }
             catch (Exception)
             {
                 throw new CrudException(System.Net.HttpStatusCode.BadRequest, "Get Highlight Event Error!!!");
-            }
+            }*/
         }
 
         
         [HttpGet("current/event")]
-        public ActionResult<List<EventFeedbackResponse>> GetCurrentEvent()
+        public ActionResult<List<EventResponse>> GetCurrentEvent()
         {
-            try
-            {
+           /* try
+            {*/
                 var rs = _eventService.GetCurrentEvent();
                 return Ok(rs);
-            }
+            /*}
             catch (Exception)
             {
                 throw new CrudException(System.Net.HttpStatusCode.BadRequest, "Get Highlight Event Error!!!");
-            }
+            }*/
         }
 
 
         [HttpGet]
-        public ActionResult<List<EventResponseForUser>> GetAllEventsForUser()
+        public ActionResult<List<EventResponse>> GetAllEventsForUser()
         {
-            try
-            {
+           /* try
+            {*/
                 var rs = _eventService.GetAllEventsForUser();
                 return Ok(rs);
-            }
+            /*}
             catch (Exception)
             {
                 throw new CrudException(System.Net.HttpStatusCode.BadRequest, "Get Events Error!!!");
-            }
+            }*/
         }
 
 
@@ -92,62 +92,56 @@ namespace eTourGuide.API.Controllers
         [HttpGet("getAllEvent/Admin")]
         public ActionResult<List<EventResponse>> GetAllEventsForAdmin()
         {
-            try
-            {
+           /* try
+            {*/
                 var rs = _eventService.GetAllEventsForAdmin();
                 return Ok(rs);
-            }
+           /* }
             catch (Exception)
             {
                 throw new CrudException(System.Net.HttpStatusCode.BadRequest, "Get Events Error!!!");
-            }
+            }*/
         }
 
         [HttpPut("id={id}")]
         public async Task<ActionResult<int>> UpdateEvent([FromBody] PutEventRequest model, int id)
         {
 
-            try
-            {
+          /*  try
+            {*/
                 var rs = await _eventService.UpdateEvent(id, model.Name, model.Description, model.Image, model.Status, model.StartDate, model.EndDate);
                 return Ok(rs);
-            }
+            /*}
             catch (Exception)
             {
 
-                return BadRequest("Can Not Update Event!");
-            }
+                throw new CrudException(System.Net.HttpStatusCode.BadRequest, "Add Exhibit to Topic Error!!!");
+            }*/
         }
 
         [HttpPut("active/event/id={id}")]
         public async Task<ActionResult<int>> ActiveEvent(int id)
         {
 
-            try
-            {
+          
                 var rs = await _eventService.UpdateStatusFromWatingToActive(id);
                 return Ok(rs);
-            }
-            catch (Exception)
-            {
-
-                return BadRequest("Can Not Update Event!");
-            }
+           
         }
 
         [HttpDelete("id={id}")]
         public async Task<ActionResult<int>> DeleteEvent(int id)
         {
 
-            try
-            {
+           /* try
+            {*/
                 var rs = await _eventService.DeleteEvent(id);
                 return Ok(rs);
-            }
+            /*}
             catch (Exception)
             {
-                return BadRequest("Can Not Delete Event!");
-            }
+                throw new CrudException(System.Net.HttpStatusCode.BadRequest, "Add Exhibit to Topic Error!!!");
+            }*/
         }
 
 
@@ -155,29 +149,45 @@ namespace eTourGuide.API.Controllers
         [HttpPost("add/exhibit/to/event")]
         public async Task<ActionResult<int>> AddExhibitToEventForAdmin([FromBody] PostExhibitInEventRequest model)
         {
-            try
-            {
+            /*try
+            {*/
                 var rs = await _eventService.AddExhibitToEvent(model.EventId, model.ExhibitId);
                 return Ok(rs);
-            }
+            /*}
             catch (Exception)
             {
                 throw new CrudException(System.Net.HttpStatusCode.BadRequest, "Add Exhibit to Event Error!!!");
-            }
+            }*/
         }
 
         [HttpGet("get/event/has/no/room")]
         public ActionResult<List<EventResponse>> GetEventThatHasNoRoom()
         {
-            try
-            {
+           /* try
+            {*/
                 var rs = _eventService.GetEventHasNoRoom();
                 return Ok(rs);
-            }
+           /* }
             catch (Exception)
             {
                 throw new CrudException(System.Net.HttpStatusCode.BadRequest, "Get Events Error!!!");
-            }
+            }*/
+        }
+
+
+        //Search event by name
+        [HttpGet("search-event-by-name-for-admin")]
+        public ActionResult<List<EventResponse>> SearchEventByNameForAdmin(string name)
+        {
+           /* try
+            {*/
+                var rs = _eventService.SearchEventForAdmin(name);
+                return Ok(rs);
+           /* }
+            catch (Exception)
+            {
+                throw new CrudException(System.Net.HttpStatusCode.BadRequest, "Can not find !!!");
+            }*/
         }
     }
 }

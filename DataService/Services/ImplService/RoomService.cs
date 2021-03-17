@@ -68,7 +68,7 @@ namespace eTourGuide.Service.Services.ImplService
             }
             catch (Exception)
             {
-                throw new CrudException(System.Net.HttpStatusCode.BadRequest, "Add Event To Room Error!!!");
+                throw new Exception("Add Event To Room Error!!!");
             }
         }
 
@@ -118,7 +118,7 @@ namespace eTourGuide.Service.Services.ImplService
             }
             catch (Exception)
             {
-                throw new CrudException(System.Net.HttpStatusCode.BadRequest, "Add Topic To Room Error!!!");
+                throw new Exception("Add Topic To Room Error!!!");
             }
         }
 
@@ -143,7 +143,7 @@ namespace eTourGuide.Service.Services.ImplService
                 }
                 catch
                 {
-                    throw new CrudException(System.Net.HttpStatusCode.BadRequest, "Delete Event in Room Fail!!!");
+                    throw new Exception("Delete Event in Room Fail!!!");
                 }
             }
             return rs;
@@ -172,7 +172,7 @@ namespace eTourGuide.Service.Services.ImplService
                 }
                 catch
                 {
-                    throw new CrudException(System.Net.HttpStatusCode.BadRequest, "Delete Event in Room Fail!!!");
+                    throw new Exception("Delete Event in Room Fail!!!");
                 }
             }
             return rs;
@@ -196,13 +196,13 @@ namespace eTourGuide.Service.Services.ImplService
             return roomResponses.ToList();
         }
 
-        public List<ExhibitFeedbackResponse> GetExhibitFromRoom(int roomId)
+        public List<ExhibitResponse> GetExhibitFromRoom(int roomId)
         {
             //check ở nhánh Event
             var exhibitInEvent = _unitOfWork.Repository<eTourGuide.Data.Entity.ExhibitInEvent>()
                     .GetAll().Where(x => x.RoomId == roomId && x.Event.Status == 2);
 
-            List<ExhibitFeedbackResponse> listExhibitResponse = new List<ExhibitFeedbackResponse>();
+            List<ExhibitResponse> listExhibitResponse = new List<ExhibitResponse>();
 
             foreach (var item in exhibitInEvent)
             {
@@ -213,7 +213,7 @@ namespace eTourGuide.Service.Services.ImplService
                     count = exhibitInFeedback.Count();
 
                 }
-                ExhibitFeedbackResponse obj = new ExhibitFeedbackResponse()
+                ExhibitResponse obj = new ExhibitResponse()
                 {
                     Id = item.ExhibitId,
                     Name = item.Exhibit.Name,
@@ -239,7 +239,7 @@ namespace eTourGuide.Service.Services.ImplService
                     count = exhibitInFeedback.Count();
 
                 }
-                ExhibitFeedbackResponse obj = new ExhibitFeedbackResponse()
+                ExhibitResponse obj = new ExhibitResponse()
                 {
                     Id = item.ExhibitId,
                     Name = item.Exhibit.Name,

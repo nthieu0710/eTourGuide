@@ -20,22 +20,22 @@ namespace eTourGuide.Service.Services.ImplService
             _unitOfWork = unitOfWork;
         }
 
-        public SearchResponse SearchByName(string name)
+        /*public SearchResponse SearchByName(string name)
         {
-            List<ExhibitFeedbackResponse> listExhibitRs = SearchExhibitByName(name);
-            List<TopicFeedbackResponse> listtopicRs = SearchTopicByName(name);
-            List<EventFeedbackResponse> listEventRs = SearchEventByName(name);
+            List<ExhibitResponse> listExhibitRs = SearchExhibitByName(name);
+            List<TopicResponse> listtopicRs = SearchTopicByName(name);
+            List<EventResponse> listEventRs = SearchEventByName(name);
 
             SearchResponse rs = new SearchResponse(listEventRs, listtopicRs, listExhibitRs);
 
             return rs;
-        }
+        }*/
 
-        public List<SearchResponseForUser> ConvertSearchList(string name)
+        public List<SearchResponseForUser> SearchByName(string name)
         {
-            List<ExhibitFeedbackResponse> listExhibitRs = SearchExhibitByName(name);
-            List<TopicFeedbackResponse> listtopicRs = SearchTopicByName(name);
-            List<EventFeedbackResponse> listEventRs = SearchEventByName(name);
+            List<ExhibitResponse> listExhibitRs = SearchExhibitByName(name);
+            List<TopicResponse> listtopicRs = SearchTopicByName(name);
+            List<EventResponse> listEventRs = SearchEventByName(name);
             SearchResponse searchResponse = new SearchResponse(listEventRs, listtopicRs, listExhibitRs);
             List<SearchResponseForUser> rs = new List<SearchResponseForUser>();
 
@@ -94,38 +94,30 @@ namespace eTourGuide.Service.Services.ImplService
 
 
 
-         List<ExhibitFeedbackResponse> SearchExhibitByName(string name)
+         List<ExhibitResponse> SearchExhibitByName(string name)
         {
             var exhibit = _unitOfWork.Repository<Exhibit>().GetAll().Where(e => e.Name.Contains(name) && e.IsDelete == false && e.Status == 1).AsQueryable();
-            List<ExhibitFeedbackResponse> listExhibit = new List<ExhibitFeedbackResponse>();
+            List<ExhibitResponse> listExhibit = new List<ExhibitResponse>();
             if (exhibit != null)
             {
                 foreach (var item in exhibit)
                 {
                     int count = 0;
                     var exhibitInFeedback = _unitOfWork.Repository<Feedback>().GetAll().Where(x => x.ExhibittId == item.Id);
-                    double ratingAVG = 0;
-                    double sumRating = 0;
+                   
                     if (exhibitInFeedback != null)
                     {
                         count = exhibitInFeedback.Count();
-                        foreach (var item2 in exhibitInFeedback)
-                        {
-                            sumRating = (double)(sumRating + item2.Rating);
-                        }
-                        if (count != 0)
-                        {
-                            ratingAVG = sumRating / count;
-                        }
+                       
 
                     }
-                    ExhibitFeedbackResponse obj = new ExhibitFeedbackResponse()
+                    ExhibitResponse obj = new ExhibitResponse()
                     {
                         Id = item.Id,
                         Name = item.Name,
                         Description = item.Description,
                         Image = item.Image,
-                        Rating = ratingAVG,
+                        Rating = (double)item.Rating,
                         TotalFeedback = count
                     };
                     listExhibit.Add(obj);
@@ -135,10 +127,10 @@ namespace eTourGuide.Service.Services.ImplService
         }
 
 
-         List<TopicFeedbackResponse> SearchTopicByName(string name)
+         List<TopicResponse> SearchTopicByName(string name)
         {
             var topic = _unitOfWork.Repository<Topic>().GetAll().Where(t => t.Name.Contains(name) && t.IsDelete == false && t.Status == 2).AsQueryable();
-            List<TopicFeedbackResponse> listTopic = new List<TopicFeedbackResponse>();
+            List<TopicResponse> listTopic = new List<TopicResponse>();
             if (topic != null)
             {
 
@@ -146,32 +138,23 @@ namespace eTourGuide.Service.Services.ImplService
                 {
                     int count = 0;
                     var topicInFeedback = _unitOfWork.Repository<Feedback>().GetAll().Where(x => x.TopicId == item.Id);
-                    double rating = 0;
-                    double sumRating = 0;
+                   
 
                     DateTime dt = (DateTime)item.StartDate;
                     if (topicInFeedback != null)
                     {
                         count = topicInFeedback.Count();
-                        foreach (var item2 in topicInFeedback)
-                        {
-                            sumRating = (double)(sumRating + item2.Rating);
-                        }
-                        if (count != 0)
-                        {
-                            rating = sumRating / count;
-                        }
-
+                       
                     }
 
-                    TopicFeedbackResponse topicObj = new TopicFeedbackResponse()
+                    TopicResponse topicObj = new TopicResponse()
                     {
                         Id = item.Id,
                         Name = item.Name,
                         Description = item.Description,
                         Image = item.Image,
                         StartDate = dt.Date.ToString("dd/MM/yyyy"),
-                        Rating = rating,
+                        Rating = (float)item.Rating,
                         TotalFeedback = count
 
                     };                    
@@ -182,10 +165,10 @@ namespace eTourGuide.Service.Services.ImplService
         }
 
 
-         List<EventFeedbackResponse> SearchEventByName(string name)
+         List<EventResponse> SearchEventByName(string name)
         {
             var evt = _unitOfWork.Repository<Event>().GetAll().Where(e => e.Name.Contains(name) && e.IsDelete == false && e.Status == 2).AsQueryable();
-            List<EventFeedbackResponse> listEvent = new List<EventFeedbackResponse>();
+            List<EventResponse> listEvent = new List<EventResponse>();
             if (evt != null)
             {
 
@@ -193,36 +176,28 @@ namespace eTourGuide.Service.Services.ImplService
                 {
                     int count = 0;
                     var evtInFeedback = _unitOfWork.Repository<Feedback>().GetAll().Where(x => x.EventId == item.Id);
-                    double ratingAVG = 0;
-                    double sumRating = 0;
+                   
 
 
 
                     if (evtInFeedback != null)
                     {
                         count = evtInFeedback.Count();
-                        foreach (var item2 in evtInFeedback)
-                        {
-                            sumRating = (double)(sumRating + item2.Rating);
-                        }
-                        if (count != 0)
-                        {
-                            ratingAVG = sumRating / count;
-                        }
+                       
 
                     }
 
                     DateTime startDate = (DateTime)item.StartDate;
                     DateTime endDate = (DateTime)item.EndDate;
 
-                    EventFeedbackResponse eventObj = new EventFeedbackResponse()
+                    EventResponse eventObj = new EventResponse()
                     {
 
                         Id = item.Id,
                         Name = item.Name,
                         Description = item.Description,
                         Image = item.Image,
-                        Rating = Math.Round((float)ratingAVG, 2),
+                        Rating = (double)item.Rating,
                         StartDate = startDate.Date.ToString("dd/MM/yyyy"),
                         EndDate = endDate.Date.ToString("dd/MM/yyyy"),
                         TotalFeedback = count
