@@ -6,6 +6,7 @@ using eTourGuide.API.Models.Requests;
 using eTourGuide.Service.Exceptions;
 using eTourGuide.Service.Model.Response;
 using eTourGuide.Service.Services.InterfaceService;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -22,50 +23,53 @@ namespace eTourGuide.API.Controllers
             _exhibitInTopicService = exhibitInTopicService;
         }
 
-            [HttpGet("get/exhibit/in/topic/for/user")]
-            public ActionResult<List<ExhibitResponse>> GetExhibitInTopic(int topicId)
-            {
-               /* try
-                {*/
-                    var rs = _exhibitInTopicService.GetExhibitInTopic(topicId);
-                    return Ok(rs);
-                /*}
-                catch (Exception e)
-                {
-                    throw new CrudException(System.Net.HttpStatusCode.BadRequest, "There's not Exhibit in this Topic!!!");
-                }*/
+        //Controller for Delete Exhibit in Topic for Admin
+        [Authorize(Roles = "1")]
+        [HttpDelete("delete/exhibit/in/topic/id={id}")]
+        public async Task<ActionResult<int>> DeleteExhibitInTopicForAdminAsync(int id)
+        {
 
-            }
+            var rs = await _exhibitInTopicService.DeleteExhibitIntTopic(id);
+            return Ok(rs);
 
-            [HttpGet("get/exhibit/in/topic/for/admin")]
-            public ActionResult<List<ExhibitResponse>> GetExhibitInTopicForAdmin(int topicId)
-            {
-                /*try
-                {*/
-                    var rs = _exhibitInTopicService.GetExhibitInTopicForAdmin(topicId);
-                    return Ok(rs);
-               /* }
-                catch (Exception e)
-                {
-                    e = e.InnerException;
-                    throw new CrudException(System.Net.HttpStatusCode.BadRequest, "There's not Exhibit in this Topic!!!");
-                }*/
-            }
+        }
 
 
-            [HttpDelete("delete/exhibit/in/topic/id={id}")]
-            public async Task<ActionResult<int>> DeleteExhibitInTopicForAdminAsync(int id)
-            {
-              /*  try
-                {*/
-                    var rs = await _exhibitInTopicService.DeleteExhibitIntTopic(id);
-                    return Ok(rs);
-              /*  }
-                catch (Exception e)
-                {
-                   
-                    throw new CrudException(System.Net.HttpStatusCode.BadRequest, "Can not delete exhibit in topic!!!");
-                }*/
-            }
+
+
+        //Controller for Get Exhibit in Topic for Admin
+        [Authorize(Roles = "1")]
+        [HttpGet("get/exhibit/in/topic/for/admin")]
+        public ActionResult<List<ExhibitResponse>> GetExhibitInTopicForAdmin(int topicId)
+        {
+                
+            var rs = _exhibitInTopicService.GetExhibitInTopicForAdmin(topicId);
+            return Ok(rs);
+              
+        }
+
+
+
+        //Controller for Get Exhibit in CLOSED Topic for Admin
+        [Authorize(Roles = "1")]
+        [HttpGet("get/exhibit/in/closed/topic/for/admin")]
+        public ActionResult<List<ExhibitResponse>> GetExhibitInClosedTopicForAdmin(int topicId)
+        {
+               
+            var rs = _exhibitInTopicService.GetExhbitForClosedTopic(topicId);
+            return Ok(rs);
+               
+        }
+
+        //=====================================================================================//
+
+        //Controller for Get Exhibit in Topic for User
+        [HttpGet("get/exhibit/in/topic/for/user")]
+        public ActionResult<List<ExhibitResponse>> GetExhibitInTopic(int topicId)
+        {
+
+            var rs = _exhibitInTopicService.GetExhibitInTopic(topicId);
+            return Ok(rs);
+        }
     }
 }

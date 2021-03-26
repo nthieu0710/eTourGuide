@@ -9,6 +9,8 @@ namespace eTourGuide.API.Models.Requests
     {
         public string Name { get; set; }
         public string Description { get; set; }
+        public string NameEng { get; set; }
+        public string DescriptionEng { get; set; }
         public string Image { get; set; }
         //public DateTime CreateDate { get; set; }
         public DateTime StartDate { get; set; }

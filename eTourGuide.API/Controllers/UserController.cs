@@ -22,20 +22,23 @@ namespace eTourGuide.API.Controllers
         }
 
 
-        //Search by name
+        //Controller for Search Exhibit/Event/Topic by name for User
         [HttpGet("search-by-name")]
         public async Task<ActionResult<SearchResponse>> SearchByNameForUser(string name)
-        {
-            /*try
-            {*/
-                var rs = _userService.SearchByName(name);
-                return Ok(rs);
-           /* }
-            catch (Exception)
-            {
-                throw new CrudException(System.Net.HttpStatusCode.BadRequest, "Can not find !!!");
-            }*/
+        {        
+            var rs = _userService.SearchByName(name);
+            return Ok(rs);
+         
         }
+
+
+        /*[HttpPost("get-suggest-route-base-on-exhibit")]
+        public ActionResult<List<SuggestRouteResponse>> GetSuggestRouteForUserBaseOnExhibit(int[] exhibitId)
+        {
+
+            var rs = _userService.GetSuggestRouteBaseOnExhibit(exhibitId);
+            return Ok(rs);
+        }*/
 
     }
 }

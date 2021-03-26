@@ -67,7 +67,7 @@ namespace eTourGuide.API
             {
                 c.SwaggerDoc("v1", new OpenApiInfo
                 {
-                    Title = "Location Based Advertising API",
+                    Title = "ETourGuide API",
                     Version = "v1"
                 });
                 c.ResolveConflictingActions(apiDescriptions => apiDescriptions.First());
@@ -140,8 +140,8 @@ namespace eTourGuide.API
             builder.RegisterType<ExhibitInTopicService>().As<IExhibitInTopicService>();         
             builder.RegisterType<UserService>().As<IUserService>();
             builder.RegisterType<RoomService>().As<IRoomService>();
-            builder.RegisterType<FileService>().As<IFileService>();
-            builder.RegisterType<AdminService>().As<IAdminService>();
+            //builder.RegisterType<FileService>().As<IFileService>();
+            //builder.RegisterType<AdminService>().As<IAdminService>();
             builder.RegisterType<UnitOfWork>().As<IUnitOfWork>();
             builder.RegisterGeneric(typeof(GenericRepository<>))
             .As(typeof(IGenericRepository<>))

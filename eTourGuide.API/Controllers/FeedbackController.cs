@@ -7,6 +7,7 @@ using eTourGuide.Data.Entity;
 using eTourGuide.Service.Exceptions;
 using eTourGuide.Service.Model.Response;
 using eTourGuide.Service.Services.InterfaceService;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -23,181 +24,92 @@ namespace eTourGuide.API.Controllers
             _feedbackService = feedbackService;
         }
 
-        [HttpGet("exhibit/feedback/id={id}")]
-        public ActionResult<List<Feedback>> GetFeedbackForExhibit(int id)
-        {
-            /*try
-            {*/
-                var rs = _feedbackService.GetFeedbacksExhibitcForUserById(id);
-                return Ok(rs);
-           /* }
-            catch (Exception)
-            {
-                throw new CrudException(System.Net.HttpStatusCode.BadRequest, "Get Feedback Exhibit Error!!!");
-            }*/
-        }
-
-
-        [HttpGet("event/feedback/id={id}")]
-        public ActionResult<List<EventFeedbackFromUser>> GetFeedbackForEvent(int id)
-        {
-           /* try
-            {*/
-                var rs = _feedbackService.GetFeedbacksEventForUserById(id);
-                return Ok(rs);
-            /*}
-            catch (Exception)
-            {
-                throw new CrudException(System.Net.HttpStatusCode.BadRequest, "Get Feedback Event Error!!!");
-            }*/
-        }
-
-        [HttpGet("topic/feedback/id={id}")]
-        public ActionResult<List<TopicFeedbackFromUser>> GetFeedbackForTopic(int id)
-        {
-          /*  try
-            {*/
-                var rs = _feedbackService.GetFeedbacksTopicForUserById(id);
-                return Ok(rs);
-          /*  }
-            catch (Exception)
-            {
-                throw new CrudException(System.Net.HttpStatusCode.BadRequest, "Get Feedback Topic Error!!!");
-            }*/
-        }
-
-
-
-        [HttpGet("get/feedback/event/for/admin")]
-        public ActionResult<List<EventFeedbackFromUser>> GetListFeedBackEventForAdmin()
-        {/*
-            try
-            {*/
-                var rs = _feedbackService.GetFeedbacksEventForAdmin();
-                return Ok(rs);
-            /*}
-            catch (Exception)
-            {
-                throw new CrudException(System.Net.HttpStatusCode.BadRequest, "Get Feedback Event Error!!!");
-            }*/
-        }
-
-
-        [HttpGet("get/feedback/exhibit/for/admin")]
-        public ActionResult<List<ExhibitFeedbackFromUser>> GetListFeedBackExhibitForAdmin()
-        {
-           /* try
-            {*/
-                var rs = _feedbackService.GetFeedbacksExhibitForAdmin();
-                return Ok(rs);
-            /*}
-            catch (Exception e)
-            {
-                throw new CrudException(System.Net.HttpStatusCode.BadRequest, "Get Feedback Exhibit Error!!!");
-            }*/
-        }
-
-
-        [HttpGet("get/feedback/topic/for/admin")]
-        public ActionResult<List<TopicFeedbackFromUser>> GetListFeedBackTopicForAdmin()
-        {
-            /*try
-            {*/
-                var rs = _feedbackService.GetFeedbacksTopicForAdmin();
-                return Ok(rs);
-            /*}
-            catch (Exception e)
-            {
-                throw new CrudException(System.Net.HttpStatusCode.BadRequest, "Get Feedback Topic Error!!!");
-            }*/
-        }
-
-
-
-        
-        [HttpPost("add/exhibit/feedback/from/user")]
-        public async Task<ActionResult<int>> AddExhibitFeedbackFromUser([FromBody] PostExhibitFeedbackRequest model)
-        {
-
-          /*  try
-            {*/
-                var rs = await _feedbackService.CreateUserFeedbackForExhibit(model.ExhibitId, model.VisitorName, model.Rating, model.Description);
-
-                return Ok(rs);
-            /*}
-            catch (Exception)
-            {
-                return BadRequest("Can Not Create Feedback!");
-            }*/
-
-        }
-
 
         [HttpPost("add/event/feedback/from/user")]
         public async Task<ActionResult<int>> AddEventFeedbackFromUser([FromBody] PostEventFeedbackRequest model)
         {
+            var rs = await _feedbackService.CreateUserFeedbackForEvent(model.EventId, model.VisitorName, model.Rating, model.Description);
+            return Ok(rs);
 
-           
-                var rs = await _feedbackService.CreateUserFeedbackForEvent(model.EventId, model.VisitorName, model.Rating, model.Description);
-
-                return Ok(rs);
-          
         }
 
 
         [HttpPost("add/topic/feedback/from/user")]
         public async Task<ActionResult<int>> AddTopicFeedbackFromUser([FromBody] PostTopicFeedbackRequest model)
         {
-
-          /*  try
-            {*/
-                var rs = await _feedbackService.CreateUserFeedbackForTopic(model.TopicId, model.VisitorName, model.Rating, model.Description);
-
-                return Ok(rs);
-           /* }
-            catch (Exception)
-            {
-                return BadRequest("Can Not Create Feedback!");
-            }*/
-
+           
+            var rs = await _feedbackService.CreateUserFeedbackForTopic(model.TopicId, model.VisitorName, model.Rating, model.Description);
+            return Ok(rs);
+ 
         }
 
 
-
-
-
-
+        //Controller for Enable Feedback For Admin
+        [Authorize(Roles = "1")]
         [HttpPut("enable/feeback/for/admin/id={id}")]
         public async Task<ActionResult<int>> EnableFeedback(int id)
         {
+            var rs = await _feedbackService.EnableFeedbackForAdmin(id);
+            return Ok(rs);
 
-          /*  try
-            {*/
-                var rs = await _feedbackService.EnableFeedbackForAdmin(id);
-                return Ok(rs);
-           /* }
-            catch (Exception)
-            {
-
-                return BadRequest("Can Not Enable Feedback!");
-            }*/
         }
 
+
+        //Controller for Disable Spam Feedback For Admin
+        [Authorize(Roles = "1")]
         [HttpPut("disable/feeback/for/admin/id={id}")]
         public async Task<ActionResult<int>> DisableFeedback(int id)
         {
 
-          /*  try
-            {*/
-                var rs = await _feedbackService.DisableFeedbackForAdmin(id);
-                return Ok(rs);
-           /* }
-            catch (Exception)
-            {
+            var rs = await _feedbackService.DisableFeedbackForAdmin(id);
+            return Ok(rs);
 
-                return BadRequest("Can Not Disable Feedback!");
-            }*/
         }
+
+
+        //Controller for Get All Topic Feedback for Admin
+        [Authorize(Roles = "1")]
+        [HttpGet("get/feedback/event/for/admin")]
+        public ActionResult<List<EventFeedbackFromUser>> GetListFeedBackEventForAdmin()
+        {
+            var rs = _feedbackService.GetFeedbacksEventForAdmin();
+            return Ok(rs);
+          
+        }
+
+        
+        //Controller for Get All Topic Feedback for Admin
+        [Authorize(Roles = "1")]
+        [HttpGet("get/feedback/topic/for/admin")]
+        public ActionResult<List<TopicFeedbackFromUser>> GetListFeedBackTopicForAdmin()
+        {
+
+            var rs = _feedbackService.GetFeedbacksTopicForAdmin();
+            return Ok(rs);
+
+        }
+       
+
+        //Controller for Get Event Feedback by Event Id
+        [HttpGet("event/feedback/id={id}")]
+        public ActionResult<List<EventFeedbackFromUser>> GetFeedbackForEvent(int id)
+        {
+
+            var rs = _feedbackService.GetFeedbacksEventForUserById(id);
+            return Ok(rs);
+
+        }
+
+        //Controller for Get Topic Feedback by Topic Id
+        [HttpGet("topic/feedback/id={id}")]
+        public ActionResult<List<TopicFeedbackFromUser>> GetFeedbackForTopic(int id)
+        {
+
+            var rs = _feedbackService.GetFeedbacksTopicForUserById(id);
+            return Ok(rs);
+
+        }
+
 
     }
 }

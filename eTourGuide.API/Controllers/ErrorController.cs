@@ -33,6 +33,8 @@ namespace eTourGuide.API.Controllers
                 title: context.Error.Message);
         }
 
+
+
         [Route("/error")]
         public ErrorResponse Error()
         {

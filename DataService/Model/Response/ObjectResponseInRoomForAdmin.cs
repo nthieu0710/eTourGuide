@@ -10,6 +10,8 @@ namespace eTourGuide.Service.Model.Response
         public int EventOrTopicId { get; set; }
         public string Name { get; set; }
         public string Description { get; set; }
+        public string NameEng { get; set; }
+        public string DescriptionEng { get; set; }
         public string Image{ get; set; }
         public string CreateDate { get; set; }
         public double Rating { get; set; }

@@ -9,9 +9,9 @@ namespace eTourGuide.Data.Entity
     {
         public Room()
         {
-            EventInRooms = new HashSet<EventInRoom>();
+            Events = new HashSet<Event>();
             Positions = new HashSet<Position>();
-            TopicInRooms = new HashSet<TopicInRoom>();
+            Topics = new HashSet<Topic>();
         }
 
         public int Id { get; set; }
@@ -19,8 +19,8 @@ namespace eTourGuide.Data.Entity
         public int? No { get; set; }
         public int? Status { get; set; }
 
-        public virtual ICollection<EventInRoom> EventInRooms { get; set; }
+        public virtual ICollection<Event> Events { get; set; }
         public virtual ICollection<Position> Positions { get; set; }
-        public virtual ICollection<TopicInRoom> TopicInRooms { get; set; }
+        public virtual ICollection<Topic> Topics { get; set; }
     }
 }

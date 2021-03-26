@@ -7,6 +7,7 @@ using eTourGuide.Data.Entity;
 using eTourGuide.Service.Exceptions;
 using eTourGuide.Service.Model.Response;
 using eTourGuide.Service.Services.InterfaceService;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -23,177 +24,133 @@ namespace eTourGuide.API.Controllers
             _topicService = topicService;
         }
 
-        //Controller for GetAllTopcics for Admin
-        [HttpGet("admin")]
-        public ActionResult<List<TopicResponse>> GetAllTopcics()
-        {
-           /* try
-            {*/
-                var rs = _topicService.GetAllTopics();
-                return Ok(rs);
-           /* }
-            catch (Exception)
-            {
-                throw new CrudException(System.Net.HttpStatusCode.BadRequest, "Get Topics Error!!!");
-            }*/
-        }
 
-        //Controller for GetAllTopcics for User
-        [HttpGet]
-        public ActionResult<List<TopicResponse>> GetAllTopcicsForUser()
-        {
-           /* try
-            {*/
-                var rs = _topicService.GetAllTopicsForUser();
-                return Ok(rs);
-            /*}
-            catch (Exception)
-            {
-                throw new CrudException(System.Net.HttpStatusCode.BadRequest, "Get Topics Error!!!");
-            }*/
-        }
-
-        //Controlerr for Get by Id
-        [HttpGet("id={id}")]
-        public async Task<ActionResult<TopicResponse>> GetTopicById(int id)
-        {
-            /*try
-            {*/
-                var rs = await _topicService.GetTopicById(id);
-                return Ok(rs);
-            /*}
-            catch (Exception)
-            {
-                throw new CrudException(System.Net.HttpStatusCode.BadRequest, "Can not find Topic!!!");
-            }*/
-        }
-
-
-        //Get Highlight Topic Rating > 4
-        [HttpGet("suggest/highlight/topic")]
-        public ActionResult<List<TopicResponse>> GetHighLightTopic()
-        {
-           /* try
-            {*/
-                var rs = _topicService.GetHightLightTopic();
-                return Ok(rs);
-            /*}
-            catch (Exception)
-            {
-                throw new CrudException(System.Net.HttpStatusCode.BadRequest, "Get Highlight Topic Error!!!");
-            }*/
-        }
-
-
-        //Controller for InsertTopic
+        //Controller for Add Topic
+        [Authorize(Roles = "1")]
         [HttpPost("add/topic")]
         public async Task<ActionResult<int>> InsertTopic([FromBody] PostTopicRequest model)
         {
 
-            /*try
-            {*/
-                var rs = await _topicService.AddTopic(model.Name, model.Description, model.Image, model.StartDate);
-                
-                return Ok(rs);
-            /*}
-            catch (Exception)
-            {
-                throw new CrudException(System.Net.HttpStatusCode.BadRequest, "Add Exhibit to Topic Error!!!");
-            }*/
+            var rs = await _topicService.AddTopic(model.Name, model.Description, model.NameEng, model.DescriptionEng, model.Image, model.StartDate);          
+            return Ok(rs);
 
         }
 
 
+        //Controller for Add Exhibit to Topic for Admin
+        [Authorize(Roles = "1")]
+        [HttpPost("add/exhibit/to/topic")]
+        public async Task<ActionResult<int>> AddExhibitToTopicForAdmin([FromBody] PostExhibitInTopicRequest model)
+        {
 
-        //Controller for UpdateTopic
+            var rs = await _topicService.AddExhibitToTopic(model.TopicId, model.ExhibitId);
+            return Ok(rs);
+
+        }
+
+
+        //Controller for Update Topic
+        [Authorize(Roles = "1")]
         [HttpPut("id={id}")]
         public async Task<ActionResult<int>> UpdateTopic([FromBody] PutTopicRequest model, int id)
         {
 
-            /*try
-            {*/
-                var rs = await _topicService.UpdateTopic(id, model.Name, model.Description, model.Image, model.StartDate, model.Status);
-                return Ok(rs);
-           /* }
-            catch (Exception)
-            {
-
-                throw new CrudException(System.Net.HttpStatusCode.BadRequest, "Add Exhibit to Topic Error!!!");
-            }*/
+            var rs = await _topicService.UpdateTopic(id, model.Name, model.Description, model.NameEng, model.DescriptionEng, model.Image, model.StartDate, model.Status);
+           return Ok(rs);
+           
         }
 
+
+        //Controller for Active Topic
+        [Authorize(Roles = "1")]
         [HttpPut("active/topic/id={id}")]
         public async Task<ActionResult<int>> ActiveTopic(int id)
         {
 
-            
-                var rs = await _topicService.UpdateStatusFromWatingToActive(id);
-                return Ok(rs);
-            
+            var rs = await _topicService.UpdateStatusFromWatingToActive(id);
+            return Ok(rs);
+
         }
 
-
-
+        //Controller for Delete Topic
+        [Authorize(Roles = "1")]
         [HttpDelete("id={id}")]
         public async Task<ActionResult<int>> DeleteTopic(int id)
         {
 
-            //try
-            //{
-                var rs = await _topicService.DeleteTopic(id);
-                return Ok(rs);
-            //}
-            //catch (Exception)
-            //{
-                //return BadRequest("Can Not Delete Topic!");
-            //}
+            var rs = await _topicService.DeleteTopic(id);
+            return Ok(rs);
+
         }
 
-
-
-        [HttpPost("add/exhibit/to/topic")]
-        public async Task<ActionResult<int>> AddExhibitToTopicForAdmin([FromBody] PostExhibitInTopicRequest model)
+        //Controller for Get All Topcics for Admin
+        [Authorize(Roles = "1")]
+        [HttpGet("admin")]
+        public ActionResult<List<TopicResponse>> GetAllTopcics()
         {
-            /*try
-            {*/
-                var rs = await _topicService.AddExhibitToTopic(model.TopicId, model.ExhibitId);
-                return Ok(rs);
-           /* }
-            catch (Exception)
-            {
-                throw new CrudException(System.Net.HttpStatusCode.BadRequest, "Add Exhibit to Topic Error!!!");
-            }*/
+
+            var rs = _topicService.GetAllTopics();
+            return Ok(rs);
+
         }
+     
 
-
+        //Controller for Get Topic is not set up Room
+        [Authorize(Roles = "1")]
         [HttpGet("get/topic/has/no/room")]
         public ActionResult<List<TopicResponse>> GetTopicThatHasNoRoom()
         {
-            /*try
-            {*/
-                var rs = _topicService.GetTopicHasNoRoom();
-                return Ok(rs);
-            /*}
-            catch (Exception)
-            {
-                throw new CrudException(System.Net.HttpStatusCode.BadRequest, "Get Topics Error!!!");
-            }*/
+
+            var rs = _topicService.GetTopicHasNoRoom();
+            return Ok(rs);
+
         }
 
 
-        //Search topicc by name
+        //Controller for Search Topic by name for Admin
+        [Authorize(Roles = "1")]
         [HttpGet("search-topic-by-name-for-admin")]
         public ActionResult<List<TopicResponse>> SearchTopicByNameForAdmin(string name)
         {
-           /* try
-            {*/
-                var rs = _topicService.SearchTopicForAdmin(name);
-                return Ok(rs);
-           /* }
-            catch (Exception)
-            {
-                throw new CrudException(System.Net.HttpStatusCode.BadRequest, "Can not find !!!");
-            }*/
+         
+            var rs = _topicService.SearchTopicForAdmin(name);
+            return Ok(rs);
+
+        }
+
+        //============================================================================================//
+
+
+
+        //Controller for Get All Topcics for User
+        [HttpGet]
+        public ActionResult<List<TopicResponse>> GetAllTopcicsForUser()
+        {
+
+            var rs = _topicService.GetAllTopicsForUser();
+            return Ok(rs);
+
+        }
+
+        //Controler for Get Topic by Topic Id
+        [HttpGet("id={id}")]
+        public async Task<ActionResult<TopicResponse>> GetTopicById(int id)
+        {
+
+            var rs = await _topicService.GetTopicById(id);
+            return Ok(rs);
+
+        }
+
+
+        //Controller for Get Highlight Topic with Rating > 4
+        [HttpGet("suggest/highlight/topic")]
+        public ActionResult<List<TopicResponse>> GetHighLightTopic()
+        {
+
+            var rs = _topicService.GetHightLightTopic();
+            return Ok(rs);
+
         }
 
     }

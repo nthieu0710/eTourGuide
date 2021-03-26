@@ -9,11 +9,22 @@ namespace eTourGuide.Service.Services.InterfaceService
 {
     public interface IExhibitInEventService
     {
+        //xóa 1 hiện vật ra khỏi event
+        Task<int> DeleteExhibitInEvent(int exhibitId);
+
+        //lấy danh sách hiện vật trong 1 topic closed
+        List<ExhibitResponse> GetExhbitForClosedEvent(int eventId);
+
+        //lấy danh sách những hiện vật có trong 1 topic
+        List<ExhibitResponse> GetExhibitInEventForAdmin(int id);
+
+        //------------------------------------------------------------------------------------------------------------------------------//
+        //------------------------------------------------------------------------------------------------------------------------------//
+
+
+        //lấy danh sách những hiện vật có trong 1 topic
         List<ExhibitResponse> GetExhibitInEvent(int id);
 
 
-        List<ExhibitResponse> GetExhibitInEventForAdmin(int id);
-
-        Task<int> DeleteExhibitInEvent(int exhibitId);
     }
 }

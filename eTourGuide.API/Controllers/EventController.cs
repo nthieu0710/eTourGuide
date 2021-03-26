@@ -7,6 +7,7 @@ using eTourGuide.Data.Entity;
 using eTourGuide.Service.Exceptions;
 using eTourGuide.Service.Model.Response;
 using eTourGuide.Service.Services.InterfaceService;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -24,170 +25,131 @@ namespace eTourGuide.API.Controllers
         }
 
 
-        //Controller for Insert Event
+        //Controller for Add Event
+        [Authorize(Roles = "1")]
         [HttpPost]
         public async Task<ActionResult<int>> InsertEvent([FromBody] PostEventRequest model)
         {
 
-           /* try
-            {*/
-                var rs = await _eventService.AddEvent(model.Name, model.Description, model.Image, model.StartDate, model.EndDate);
-                return Ok(rs);
-            /*}
-            catch (Exception)
-            {
-
-                throw new CrudException(System.Net.HttpStatusCode.BadRequest, "Add Exhibit to Topic Error!!!");
-            }*/
-
+            var rs = await _eventService.AddEvent(model.Name, model.Description, model.NameEng, model.DescriptionEng, model.Image, model.StartDate, model.EndDate);
+            return Ok(rs);
+           
         }
 
-        //Get Highlight Event Rating > 4
-        [HttpGet("suggest/highlight/event")]
-        public ActionResult<List<EventResponse>> GetHighLightEvent()
+        //Controller for Add Exhibit To Event
+        [Authorize(Roles = "1")]
+        [HttpPost("add/exhibit/to/event")]
+        public async Task<ActionResult<int>> AddExhibitToEventForAdmin([FromBody] PostExhibitInEventRequest model)
         {
-           /* try
-            {*/
-                var rs = _eventService.GetListHightLightEvent();
-                return Ok(rs);
-           /* }
-            catch (Exception)
-            {
-                throw new CrudException(System.Net.HttpStatusCode.BadRequest, "Get Highlight Event Error!!!");
-            }*/
-        }
+            var rs = await _eventService.AddExhibitToEvent(model.EventId, model.ExhibitId);
+            return Ok(rs);
 
-        
-        [HttpGet("current/event")]
-        public ActionResult<List<EventResponse>> GetCurrentEvent()
-        {
-           /* try
-            {*/
-                var rs = _eventService.GetCurrentEvent();
-                return Ok(rs);
-            /*}
-            catch (Exception)
-            {
-                throw new CrudException(System.Net.HttpStatusCode.BadRequest, "Get Highlight Event Error!!!");
-            }*/
         }
 
 
-        [HttpGet]
-        public ActionResult<List<EventResponse>> GetAllEventsForUser()
-        {
-           /* try
-            {*/
-                var rs = _eventService.GetAllEventsForUser();
-                return Ok(rs);
-            /*}
-            catch (Exception)
-            {
-                throw new CrudException(System.Net.HttpStatusCode.BadRequest, "Get Events Error!!!");
-            }*/
-        }
-
-
-
-        [HttpGet("getAllEvent/Admin")]
-        public ActionResult<List<EventResponse>> GetAllEventsForAdmin()
-        {
-           /* try
-            {*/
-                var rs = _eventService.GetAllEventsForAdmin();
-                return Ok(rs);
-           /* }
-            catch (Exception)
-            {
-                throw new CrudException(System.Net.HttpStatusCode.BadRequest, "Get Events Error!!!");
-            }*/
-        }
-
+        //Controller for Update Event
+        [Authorize(Roles = "1")]
         [HttpPut("id={id}")]
         public async Task<ActionResult<int>> UpdateEvent([FromBody] PutEventRequest model, int id)
         {
 
-          /*  try
-            {*/
-                var rs = await _eventService.UpdateEvent(id, model.Name, model.Description, model.Image, model.Status, model.StartDate, model.EndDate);
-                return Ok(rs);
-            /*}
-            catch (Exception)
-            {
+            var rs = await _eventService.UpdateEvent(id, model.Name, model.Description, model.NameEng, model.DescriptionEng, model.Image, model.Status, model.StartDate, model.EndDate);
+            return Ok(rs);
 
-                throw new CrudException(System.Net.HttpStatusCode.BadRequest, "Add Exhibit to Topic Error!!!");
-            }*/
         }
 
+
+        //Controller for Active Event
+        [Authorize(Roles = "1")]
         [HttpPut("active/event/id={id}")]
         public async Task<ActionResult<int>> ActiveEvent(int id)
         {
 
-          
-                var rs = await _eventService.UpdateStatusFromWatingToActive(id);
-                return Ok(rs);
-           
+            var rs = await _eventService.UpdateStatusFromWatingToActive(id);
+            return Ok(rs);
+
         }
 
+
+        //Controller for Delete Event
+        [Authorize(Roles = "1")]
         [HttpDelete("id={id}")]
         public async Task<ActionResult<int>> DeleteEvent(int id)
         {
 
-           /* try
-            {*/
-                var rs = await _eventService.DeleteEvent(id);
-                return Ok(rs);
-            /*}
-            catch (Exception)
-            {
-                throw new CrudException(System.Net.HttpStatusCode.BadRequest, "Add Exhibit to Topic Error!!!");
-            }*/
+            var rs = await _eventService.DeleteEvent(id);
+            return Ok(rs);
+
         }
 
-
-
-        [HttpPost("add/exhibit/to/event")]
-        public async Task<ActionResult<int>> AddExhibitToEventForAdmin([FromBody] PostExhibitInEventRequest model)
+        //Controller for Get All Events
+        [Authorize(Roles = "1")]
+        [HttpGet("getAllEvent/Admin")]
+        public ActionResult<List<EventResponse>> GetAllEventsForAdmin()
         {
-            /*try
-            {*/
-                var rs = await _eventService.AddExhibitToEvent(model.EventId, model.ExhibitId);
-                return Ok(rs);
-            /*}
-            catch (Exception)
-            {
-                throw new CrudException(System.Net.HttpStatusCode.BadRequest, "Add Exhibit to Event Error!!!");
-            }*/
+
+            var rs = _eventService.GetAllEventsForAdmin();
+            return Ok(rs);
+
         }
 
+             
+
+        //Controller for Get Event is not in any Room
+        [Authorize(Roles = "1")]
         [HttpGet("get/event/has/no/room")]
         public ActionResult<List<EventResponse>> GetEventThatHasNoRoom()
         {
-           /* try
-            {*/
-                var rs = _eventService.GetEventHasNoRoom();
-                return Ok(rs);
-           /* }
-            catch (Exception)
-            {
-                throw new CrudException(System.Net.HttpStatusCode.BadRequest, "Get Events Error!!!");
-            }*/
+
+            var rs = _eventService.GetEventHasNoRoom();
+            return Ok(rs);
+
         }
 
 
-        //Search event by name
+        //Controller for Search by Event Name Admin
+        [Authorize(Roles = "1")]
         [HttpGet("search-event-by-name-for-admin")]
         public ActionResult<List<EventResponse>> SearchEventByNameForAdmin(string name)
         {
-           /* try
-            {*/
-                var rs = _eventService.SearchEventForAdmin(name);
-                return Ok(rs);
-           /* }
-            catch (Exception)
-            {
-                throw new CrudException(System.Net.HttpStatusCode.BadRequest, "Can not find !!!");
-            }*/
+
+            var rs = _eventService.SearchEventForAdmin(name);
+            return Ok(rs);
+
         }
+
+        //=================================================================================================//
+
+
+        //Controller for Get Highlight Event Rating > 4 for User
+        [HttpGet("suggest/highlight/event")]
+        public ActionResult<List<EventResponse>> GetHighLightEvent()
+        {
+         
+            var rs = _eventService.GetListHightLightEvent();
+            return Ok(rs);
+
+        }
+
+        //Controller for Get Event is Active now for User
+        [HttpGet("current/event")]
+        public ActionResult<List<EventResponse>> GetCurrentEvent()
+        {       
+            var rs = _eventService.GetCurrentEvent();
+            return Ok(rs);
+           
+        }
+
+        //Controller for Get All Events For User
+        [HttpGet]
+        public ActionResult<List<EventResponse>> GetAllEventsForUser()
+        {          
+            var rs = _eventService.GetAllEventsForUser();
+            return Ok(rs);
+            
+        }
+
+     
+        
     }
 }

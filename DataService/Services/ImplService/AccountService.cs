@@ -31,9 +31,13 @@ namespace eTourGuide.Service.Servcies.ImplService
         public async Task<string> AuthenticateAsync(string username, string password)
         { 
             Account account = _unitOfWork.Repository<Account>().GetAll().Where(x => x.Username == username).FirstOrDefault();
+            if (account == null)
+            {
+                throw new Exception("Can not found User!!!");
+            }
             if (account.Password != password)
             {
-                return null;
+                throw new Exception("Error Password!!!");
             }
             var jwt = GenerateJwtToken(account);
             return jwt;
@@ -94,7 +98,9 @@ namespace eTourGuide.Service.Servcies.ImplService
             var claims = new[]
             {
                new Claim(ClaimTypes.Name, account.Username.ToString()),
+               new Claim(ClaimTypes.Role, account.Role.ToString()),
                new Claim("Username", string.IsNullOrEmpty(account.Username.ToString())?"":account.Username.ToString())
+
             };
             var key = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(_config["AppSettings:Secret"]));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);

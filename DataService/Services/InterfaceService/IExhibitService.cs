@@ -9,22 +9,39 @@ namespace eTourGuide.Service.Services.InterfaceService
 {
     public interface IExhibitService
     {
-        Task<int> AddExhibit(string Name, string Description, string Image, TimeSpan duration);
+        //tạo mới 1 hiện vật
+        Task<int> AddExhibit(string Name, string Description, string NameEng, string DescriptionEng, string Image, TimeSpan duration);
 
-        Task<int> UpdateExhibit(int id, string Name, string Description, string Image, TimeSpan Duration);
+        //cập nhập 1 hiện vật
+        Task<int> UpdateExhibit(int id, string Name, string Description, string NameEng, string DescriptionEng, string Image, TimeSpan Duration);
 
+        //xóa 1 hiện vật
         Task<int> DeleteExhibit(int id);
 
-        List<ExhibitResponse> GetHightLightExhibit();
-
-        List<ExhibitResponse> GetAllExhibitsForUser();
-
-        List<ExhibitResponse> GetNewExhibit();
-
+        //get list những hiện vật chưa đc add vào topic/event nào
         List<ExhibitResponse> GetAvailableExhibit();
 
+        //get all exhibit for admin
         List<ExhibitResponse> GetAllExhibitForAdmin();
 
+        //search by name for admin
         List<ExhibitResponse> SearchExhibitForAdmin(string name);
+
+        //Trả về Topic hoặc Event đang chứa hiện vật
+        String GetTopicOrEventContainExhibit (int exhibitId);
+
+        //------------------------------------------------------------------------------------------------------------------------------//
+        //------------------------------------------------------------------------------------------------------------------------------//
+
+
+        //get list những hiện vật vừa đc thêm gần đây
+        List<ExhibitResponse> GetNewExhibit();
+
+        //get list những hiện vật highlight rating > 4
+        List<ExhibitResponse> GetHightLightExhibit();
+
+        //get all exhibit đang có cho user
+        List<ExhibitResponse> GetAllExhibitsForUser();
+
     }
 }

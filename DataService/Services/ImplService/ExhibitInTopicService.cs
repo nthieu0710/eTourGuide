@@ -26,15 +26,13 @@ namespace eTourGuide.Service.Services.ImplService
         {
             int rs = 0;
             //lấy obj trong bảng exhibitInTopic chứa topicId và exhibitId đó
-            ExhibitInTopic exhibitInTopic = _unitOfWork.Repository<ExhibitInTopic>().GetAll().Where(e => e.ExhibitId == exhibitId).FirstOrDefault();
-            
-            //lấy topics ra
-            Topic topic = _unitOfWork.Repository<Topic>().GetAll().Where(t => t.Id == exhibitInTopic.TopicId).FirstOrDefault();
-
-           
+            ExhibitInTopic exhibitInTopic = _unitOfWork.Repository<ExhibitInTopic>().GetAll()
+                                            .Where(e => e.Status == true && e.ExhibitId == exhibitId).FirstOrDefault();                              
 
             if (exhibitInTopic != null)
             {
+                //lấy topic ra
+                Topic topic = _unitOfWork.Repository<Topic>().GetAll().Where(t => t.Id == exhibitInTopic.TopicId).FirstOrDefault();
                 try
                 {
                     //Delete row trong bảng ExhibitInTopic
@@ -50,7 +48,9 @@ namespace eTourGuide.Service.Services.ImplService
 
 
                     //xét trong bảng exhibitInTopic 
-                    var exhibitInTopicList = _unitOfWork.Repository<ExhibitInTopic>().GetAll().Where(t => t.TopicId == topic.Id).AsQueryable();
+                    var exhibitInTopicList = _unitOfWork.Repository<ExhibitInTopic>().GetAll()
+                                            .Where(t => t.Status == true && t.TopicId == topic.Id).AsQueryable();
+
                     //nếu k còn obj nào trong topic đó thì set status cho topic đó về New
                     if (exhibitInTopicList.ToList().Count == 0)
                     {
@@ -80,30 +80,22 @@ namespace eTourGuide.Service.Services.ImplService
                 throw new Exception("Can not found Topic!!!");
             }
 
-            var topicTrans = _unitOfWork.Repository<eTourGuide.Data.Entity.ExhibitInTopic>().GetAll().Where(x => x.TopicId == id);
+            var topicTrans = _unitOfWork.Repository<eTourGuide.Data.Entity.ExhibitInTopic>().GetAll()
+                                                    .Where(x => x.Status == true && x.TopicId == id);
+
             List<ExhibitResponse> listExhibit = new List<ExhibitResponse>();
-            if (topicTrans != null)
+            if (topicTrans.Count() > 0)
             {
                 foreach (var item in topicTrans)
-                {
-                    int count = 0;
-                    var exhibitInFeedback = _unitOfWork.Repository<Feedback>().GetAll().Where(x => x.ExhibittId == item.Exhibit.Id);
-                   
-                    if (exhibitInFeedback != null)
-                    {
-                        count = exhibitInFeedback.Count();
-                     
-
-                    }
-
+                {                 
                     ExhibitResponse obj = new ExhibitResponse()
                     {
                         Id = item.Exhibit.Id,
                         Name = item.Exhibit.Name,
                         Description = item.Exhibit.Description,
+                        NameEng = item.Exhibit.NameEng,
+                        DescriptionEng = item.Exhibit.Description,
                         Image = item.Exhibit.Image,
-                        Rating = (double)item.Exhibit.Rating,
-                        TotalFeedback = count
                     };
                     listExhibit.Add(obj);
                 }
@@ -120,9 +112,11 @@ namespace eTourGuide.Service.Services.ImplService
                 throw new Exception("Can not found Topic!!!");
             }
 
-            var topicTrans = _unitOfWork.Repository<eTourGuide.Data.Entity.ExhibitInTopic>().GetAll().Where(x => x.TopicId == id);
+            var topicTrans = _unitOfWork.Repository<eTourGuide.Data.Entity.ExhibitInTopic>().GetAll()
+                                .Where(x => x.Status == true && x.TopicId == id);
+
             List<ExhibitResponse> listExhibit = new List<ExhibitResponse>();
-            if (topicTrans != null)
+            if (topicTrans.Count() > 0)
             {
                 foreach (var item in topicTrans)
                 {
@@ -133,9 +127,10 @@ namespace eTourGuide.Service.Services.ImplService
                         Id = item.Exhibit.Id,
                         Name = item.Exhibit.Name,
                         Description = item.Exhibit.Description,
+                        NameEng = item.Exhibit.NameEng,
+                        DescriptionEng = item.Exhibit.Description,
                         Image = item.Exhibit.Image,
                         CreateDate = createDate.Date.ToString("yyyy-MM-dd"),
-                        Rating = (double)item.Exhibit.Rating,
                         Status = "Added",
                         Duration = (TimeSpan)item.Exhibit.Duration
                     });
@@ -143,5 +138,50 @@ namespace eTourGuide.Service.Services.ImplService
             }
             return listExhibit;
         }
+
+        public List<ExhibitResponse> GetExhbitForClosedTopic(int topicId)
+        {
+            var exhibitInTopic = _unitOfWork.Repository<ExhibitInTopic>().GetAll()
+                                .Where(e => e.Status == false && e.TopicId == topicId).AsQueryable();
+
+            List<ExhibitResponse> listRs = new List<ExhibitResponse>();
+            string statusConvert = "";
+
+            if (exhibitInTopic.Count() != 0)
+            {
+                foreach (var item in exhibitInTopic)
+                {
+                    if (item.Exhibit.Status == 0)
+                    {
+                        statusConvert = "Ready";
+                    }
+                    else if (item.Exhibit.Status == 1)
+                    {
+                        statusConvert = "Added";
+                    }
+
+                    DateTime createDate = (DateTime)item.Exhibit.CreateDate;
+
+                    ExhibitResponse exhibitResponse = new ExhibitResponse()
+                    {
+                        Id = item.Exhibit.Id,
+                        Name = item.Exhibit.Name,
+                        Description = item.Exhibit.Description,
+                        NameEng = item.Exhibit.NameEng,
+                        DescriptionEng = item.Exhibit.Description,
+                        Image = item.Exhibit.Image,
+                        CreateDate = createDate.Date.ToString("yyyy-MM-dd"),
+                        Status = statusConvert,
+                        Duration = (TimeSpan)item.Exhibit.Duration,
+                        isDelete = (bool)item.Exhibit.IsDelete
+                    };
+                    listRs.Add(exhibitResponse);
+                }
+
+            }
+            return listRs.ToList();
+        }
+
+
     }
 }

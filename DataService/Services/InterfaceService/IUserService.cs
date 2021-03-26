@@ -8,6 +8,6 @@ namespace eTourGuide.Service.Services.InterfaceService
     public interface IUserService
     {
         //tìm kiếm event/topic/exhibit by name for user
-        List<SearchResponseForUser> SearchByName(string name);
+        List<SearchResponseForUser> SearchByName(string name);       
     }
 }

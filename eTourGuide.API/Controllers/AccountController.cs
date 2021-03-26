@@ -22,7 +22,7 @@ namespace TradeMap.API.Controllers
             _accountService = accountService;
         }
 
-        //Controller for First Login
+        //Controller for First Login Admin
         [AllowAnonymous]
         [HttpPost("authenticate")]
         public async Task<ActionResult<string>> AuthenticateWebAdminAsync([FromBody] AuthenticateModelWebAdmin model)
@@ -41,13 +41,13 @@ namespace TradeMap.API.Controllers
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        [AllowAnonymous]
+        /*[AllowAnonymous]
         [HttpPost("verify-jwt")]
-        public ActionResult<VerifyResponse> VerifyJwtTradeZoneMap([FromBody] VerifyJwtRequest model)
+        public ActionResult<VerifyResponse> VerifyJwt([FromBody] VerifyJwtRequest model)
         {
             var rs = _accountService.VerifyJwtLogin(model.Jwt);
             return Ok(rs);
-        }
+        }*/
 
     }
 }

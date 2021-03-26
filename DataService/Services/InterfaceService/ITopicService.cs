@@ -10,32 +10,23 @@ namespace eTourGuide.Service.Services.InterfaceService
     public interface ITopicService
     {
         //Tạo mới 1 Topic
-        Task<int> AddTopic(string Name, string Description, string Image, DateTime StartDate);
-
-
-        //Get tất cả các Topic for Admin
-        List<TopicResponse> GetAllTopics();
+        Task<int> AddTopic(string Name, string Description, string NameEng, string DescriptionEng, string Image, DateTime StartDate);
 
         //Cập nhập Topic
-        Task<int> UpdateTopic(int id, string Name, string Description, string Image, DateTime StartDate ,string Status);
+        Task<int> UpdateTopic(int id, string Name, string Description, string NameEng, string Descriptioneng, string Image, DateTime StartDate, string Status);
+
 
         //Xóa 1 topic
         Task<int> DeleteTopic(int id);
 
 
-        //show highlight topic with rating > 4
-        List<TopicResponse> GetHightLightTopic();
+        //Get tất cả các Topic for Admin
+        List<TopicResponse> GetAllTopics();
 
-
-        //get topic by id
-        Task<TopicResponse> GetTopicById(int id);
-
-        //get all topics for user
-        List<TopicResponse> GetAllTopicsForUser();
 
         //active 1 topic
         Task<int> UpdateStatusFromWatingToActive(int id);
-        
+
         //thêm 1 obj vào 1 topic
         Task<int> AddExhibitToTopic(int topicId, int exhibitId);
 
@@ -45,5 +36,25 @@ namespace eTourGuide.Service.Services.InterfaceService
 
         //search by name topic for admin
         List<TopicResponse> SearchTopicForAdmin(string name);
+
+
+        //------------------------------------------------------------------------------------------------------------------------------//
+        //------------------------------------------------------------------------------------------------------------------------------//
+
+        //Get all topics for user
+        List<TopicResponse> GetAllTopicsForUser();
+
+        //Show highlight topic with rating > 4
+        List<TopicResponse> GetHightLightTopic();
+
+        //Get topic by id
+        Task<TopicResponse> GetTopicById(int id);
+
+
+
+
+
+
+
     }
 }

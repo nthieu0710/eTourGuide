@@ -23,35 +23,74 @@ namespace eTourGuide.API.Controllers
             _durationService = durationService;
         }
 
-
+        //Controller for Suggest Exhibit From Duration For User
         [HttpGet("duration-for-time")]
         public ActionResult<List<ExhibitResponse>> GetDurationFromExhibit([FromQuery] TimeSpan time)
         {
-            /*try
-            {*/
+           
                 var rs = _durationService.SuggestExhibitFromDuration(time);
-                return Ok(rs);
-            /*}
-            catch (Exception)
-            {
-                throw new CrudException(System.Net.HttpStatusCode.BadRequest, "Get Duration Error!!!");
-            }*/
+                return Ok(rs);        
+        }
+
+        //Controller for Calculate time to move and visit exhibit in event for User
+        [HttpPost("total-time-to-move-and-visit-exhibit-in-a-event")]
+        public ActionResult<TimeSpan> GetTotalTimeToMoveAndVisitExhibitInEvent(int eventId, int[] exhibitId)
+        {
+
+            var rs = _durationService.TotalTimeForVisitorInEvent(eventId, exhibitId);
+            return Ok(rs);
+
         }
 
 
-        [HttpGet("suggest-route-base-on-exhibit")]
+        //Controller for Calculate time to move and visit exhibit in topic for User
+        [HttpPost("total-time-to-move-and-visit-exhibit-in-a-topic")]
+        public ActionResult<TimeSpan> GetTotalTimeToMoveAndVisitExhibitInTopic(int topicId, int[] exhibitId)
+        {
+
+            var rs = _durationService.TotalTimeForVisitorInTopic(topicId, exhibitId);
+            return Ok(rs);
+
+        }
+
+        //Controller for Suggest Route to move to visit exhibit for User
+        [HttpPost("suggest-route-base-on-exhibit")]
+        public ActionResult<List<SuggestRouteResponse>> GetSuggestRoute(int[] exhibitId)
+        {
+
+            var rs = _durationService.GetRouteBaseOnExhibit(exhibitId);
+            return Ok(rs);
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        /*[HttpGet("suggest-route-base-on-exhibit")]
         public ActionResult<List<int>> GetSuggestRoute([FromQuery] int[] exhibitId)
         {
-           /* try
-            {*/
+          
                 var rs = _durationService.SuggestRouteBaseOnExhibit(exhibitId);
-                return Ok(rs);
-            /*}
-            catch (Exception e)
-            {
-                throw new CrudException(System.Net.HttpStatusCode.BadRequest, "Get Suggest Route Error!!!");
-            }*/
-        }
+                return Ok(rs);          
+        }*/
 
         /*[HttpPost("distance-between-room")]
         public ActionResult<Double> GetDurationFromExhibit(int[] room)
@@ -63,14 +102,14 @@ namespace eTourGuide.API.Controllers
         }*/
 
 
-       /* [HttpGet("total-time-for-visit-exhibit-in-event")]
-        public ActionResult<TimeSpan> GetTotalTimeForExhibitInEvent(int id, [FromQuery] int[] exhibitId)
-        {
-          
-                var rs = _durationService.GetTotalTimeForVisitExhibitInEvent(id, exhibitId);
-                return Ok(rs);
-         
-        }*/
+        /* [HttpGet("total-time-for-visit-exhibit-in-event")]
+         public ActionResult<TimeSpan> GetTotalTimeForExhibitInEvent(int id, [FromQuery] int[] exhibitId)
+         {
+
+                 var rs = _durationService.GetTotalTimeForVisitExhibitInEvent(id, exhibitId);
+                 return Ok(rs);
+
+         }*/
 
 
         /*[HttpGet("total-time-for-visit-exhibit-in-topic")]
@@ -84,23 +123,20 @@ namespace eTourGuide.API.Controllers
 
 
 
-        [HttpPost("total-time-to-move-and-visit-exhibit-in-a-event")]
-        public ActionResult<TimeSpan> GetTotalTimeToMoveAndVisitExhibitInEvent(int eventId, int[] exhibitId)
+        /*[HttpPost("get/text/route")]
+        public async Task<ActionResult<string>> GetSuggestRouteText(List<int> node)
         {
-          
-                var rs = _durationService.TotalTimeForVisitorInEvent(eventId, exhibitId);
-                return Ok(rs);
-           
-        }
 
-        [HttpPost("total-time-to-move-and-visit-exhibit-in-a-topic")]
-        public ActionResult<TimeSpan> GetTotalTimeToMoveAndVisitExhibitInTopic(int topicId, int[] exhibitId)
-        {
           
-                var rs = _durationService.TotalTimeForVisitorInTopic(topicId, exhibitId);
-                return Ok(rs);
-          
-        }
+            var rs = _durationService.GetTextSuggestRoute(node);
+
+            return Ok(rs);         
+        }*/
+
+
+
+
+
     }
 }
 

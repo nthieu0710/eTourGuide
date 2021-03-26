@@ -19,16 +19,17 @@ namespace eTourGuide.Data.Context
         }
 
         public virtual DbSet<Account> Accounts { get; set; }
+        public virtual DbSet<Edge> Edges { get; set; }
         public virtual DbSet<Event> Events { get; set; }
-        public virtual DbSet<EventInRoom> EventInRooms { get; set; }
         public virtual DbSet<Exhibit> Exhibits { get; set; }
         public virtual DbSet<ExhibitInEvent> ExhibitInEvents { get; set; }
         public virtual DbSet<ExhibitInTopic> ExhibitInTopics { get; set; }
         public virtual DbSet<Feedback> Feedbacks { get; set; }
+        public virtual DbSet<Floor> Floors { get; set; }
+        public virtual DbSet<Map> Maps { get; set; }
         public virtual DbSet<Position> Positions { get; set; }
         public virtual DbSet<Room> Rooms { get; set; }
         public virtual DbSet<Topic> Topics { get; set; }
-        public virtual DbSet<TopicInRoom> TopicInRooms { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -50,6 +51,25 @@ namespace eTourGuide.Data.Context
                     .IsUnicode(false);
             });
 
+            modelBuilder.Entity<Edge>(entity =>
+            {
+                entity.ToTable("Edge");
+
+                entity.Property(e => e.Id).ValueGeneratedNever();
+
+                entity.HasOne(d => d.FromPositionNavigation)
+                    .WithMany(p => p.EdgeFromPositionNavigations)
+                    .HasForeignKey(d => d.FromPosition)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_Edge_Positions");
+
+                entity.HasOne(d => d.ToPositionNavigation)
+                    .WithMany(p => p.EdgeToPositionNavigations)
+                    .HasForeignKey(d => d.ToPosition)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_Edge_Positions1");
+            });
+
             modelBuilder.Entity<Event>(entity =>
             {
                 entity.ToTable("Event");
@@ -58,33 +78,27 @@ namespace eTourGuide.Data.Context
 
                 entity.Property(e => e.EndDate).HasColumnType("datetime");
 
-                entity.Property(e => e.IsDelete)
-                    .HasColumnName("isDelete")
-                    .HasDefaultValueSql("((0))");
+                entity.Property(e => e.IsDelete).HasDefaultValueSql("((0))");
 
                 entity.Property(e => e.Name).HasMaxLength(50);
 
+                entity.Property(e => e.NameEng).HasMaxLength(50);
+
                 entity.Property(e => e.StartDate).HasColumnType("datetime");
-            });
 
-            modelBuilder.Entity<EventInRoom>(entity =>
-            {
-                entity.HasKey(e => new { e.EventId, e.RoomId })
-                    .HasName("PK_EventInRoom_1");
-
-                entity.ToTable("EventInRoom");
-
-                entity.Property(e => e.CreateDate).HasColumnType("datetime");
-
-                entity.HasOne(d => d.Event)
-                    .WithMany(p => p.EventInRooms)
-                    .HasForeignKey(d => d.EventId)
-                    .HasConstraintName("FK_EventInRoom_Event1");
+                entity.Property(e => e.UserName)
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
 
                 entity.HasOne(d => d.Room)
-                    .WithMany(p => p.EventInRooms)
+                    .WithMany(p => p.Events)
                     .HasForeignKey(d => d.RoomId)
-                    .HasConstraintName("FK_EventInRoom_Room1");
+                    .HasConstraintName("FK_Event_Room");
+
+                entity.HasOne(d => d.UserNameNavigation)
+                    .WithMany(p => p.Events)
+                    .HasForeignKey(d => d.UserName)
+                    .HasConstraintName("FK_Event_Account");
             });
 
             modelBuilder.Entity<Exhibit>(entity =>
@@ -96,11 +110,17 @@ namespace eTourGuide.Data.Context
                 entity.Property(e => e.IsDelete).HasColumnName("isDelete");
 
                 entity.Property(e => e.Name).HasMaxLength(50);
+
+                entity.Property(e => e.NameEng).HasMaxLength(50);
+
+                entity.Property(e => e.Username)
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
             });
 
             modelBuilder.Entity<ExhibitInEvent>(entity =>
             {
-                entity.HasKey(e => new { e.ExhibitId, e.EventId });
+                entity.HasKey(e => new { e.ExhibitId, e.EventId, e.CreateDate });
 
                 entity.ToTable("ExhibitInEvent");
 
@@ -119,7 +139,7 @@ namespace eTourGuide.Data.Context
 
             modelBuilder.Entity<ExhibitInTopic>(entity =>
             {
-                entity.HasKey(e => new { e.ExhibitId, e.TopicId });
+                entity.HasKey(e => new { e.ExhibitId, e.TopicId, e.CreateDate });
 
                 entity.ToTable("ExhibitInTopic");
 
@@ -149,29 +169,52 @@ namespace eTourGuide.Data.Context
                     .HasForeignKey(d => d.EventId)
                     .HasConstraintName("FK_Feedback_Event");
 
-                entity.HasOne(d => d.Exhibitt)
-                    .WithMany(p => p.Feedbacks)
-                    .HasForeignKey(d => d.ExhibittId)
-                    .HasConstraintName("FK_Feedback_Object");
-
                 entity.HasOne(d => d.Topic)
                     .WithMany(p => p.Feedbacks)
                     .HasForeignKey(d => d.TopicId)
                     .HasConstraintName("FK_Feedback_Topic");
             });
 
+            modelBuilder.Entity<Floor>(entity =>
+            {
+                entity.ToTable("Floor");
+
+                entity.Property(e => e.FloorId).ValueGeneratedNever();
+
+                entity.HasOne(d => d.Map)
+                    .WithMany(p => p.Floors)
+                    .HasForeignKey(d => d.MapId)
+                    .HasConstraintName("FK_Floor_Map");
+            });
+
+            modelBuilder.Entity<Map>(entity =>
+            {
+                entity.ToTable("Map");
+
+                entity.Property(e => e.Id).ValueGeneratedNever();
+            });
+
             modelBuilder.Entity<Position>(entity =>
             {
-                entity.HasKey(e => e.Node);
+                entity.Property(e => e.Id).ValueGeneratedNever();
 
-                entity.ToTable("Position");
+                entity.Property(e => e.DescriptionEng)
+                    .HasMaxLength(100)
+                    .IsUnicode(false);
 
-                entity.Property(e => e.Node).ValueGeneratedNever();
+                entity.Property(e => e.DescriptionVie).HasMaxLength(100);
+
+                entity.HasOne(d => d.Map)
+                    .WithMany(p => p.Positions)
+                    .HasForeignKey(d => d.MapId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_Positions_Map");
 
                 entity.HasOne(d => d.Room)
                     .WithMany(p => p.Positions)
                     .HasForeignKey(d => d.RoomId)
-                    .HasConstraintName("FK_Position_Room");
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_Positions_Room");
             });
 
             modelBuilder.Entity<Room>(entity =>
@@ -185,33 +228,27 @@ namespace eTourGuide.Data.Context
 
                 entity.Property(e => e.CreateDate).HasColumnType("datetime");
 
-                entity.Property(e => e.IsDelete)
-                    .HasColumnName("isDelete")
-                    .HasDefaultValueSql("((0))");
+                entity.Property(e => e.IsDelete).HasDefaultValueSql("((0))");
 
                 entity.Property(e => e.Name).HasMaxLength(50);
 
+                entity.Property(e => e.NameEng).HasMaxLength(50);
+
                 entity.Property(e => e.StartDate).HasColumnType("datetime");
-            });
 
-            modelBuilder.Entity<TopicInRoom>(entity =>
-            {
-                entity.HasKey(e => new { e.TopicId, e.RoomId })
-                    .HasName("PK_TopicInRoom_1");
-
-                entity.ToTable("TopicInRoom");
-
-                entity.Property(e => e.CreateDate).HasColumnType("datetime");
+                entity.Property(e => e.Username)
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
 
                 entity.HasOne(d => d.Room)
-                    .WithMany(p => p.TopicInRooms)
+                    .WithMany(p => p.Topics)
                     .HasForeignKey(d => d.RoomId)
-                    .HasConstraintName("FK_TopicInRoom_Room1");
+                    .HasConstraintName("FK_Topic_Room");
 
-                entity.HasOne(d => d.Topic)
-                    .WithMany(p => p.TopicInRooms)
-                    .HasForeignKey(d => d.TopicId)
-                    .HasConstraintName("FK_TopicInRoom_Topic1");
+                entity.HasOne(d => d.UsernameNavigation)
+                    .WithMany(p => p.Topics)
+                    .HasForeignKey(d => d.Username)
+                    .HasConstraintName("FK_Topic_Account");
             });
 
             OnModelCreatingPartial(modelBuilder);

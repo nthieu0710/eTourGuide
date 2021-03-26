@@ -15,7 +15,7 @@ namespace eTourGuide.Service.Services.ImplService
     public class ExhibitService : IExhibitService
     {
         private readonly IUnitOfWork _unitOfWork;
-
+         
         public ExhibitService(IUnitOfWork unitOfWork)
         {
             _unitOfWork = unitOfWork;
@@ -23,19 +23,22 @@ namespace eTourGuide.Service.Services.ImplService
 
         
 
-        public async Task<int> AddExhibit(string Name, string Description, string Image, TimeSpan duration)
+        public async Task<int> AddExhibit(string Name, string Description, string NameEng, string DescriptionEng, string Image, TimeSpan duration)
         {
             int statusToDb = 0;
+
             DateTime dt = Convert.ToDateTime(DateTime.Now);
             string s2 = dt.ToString("yyyy-MM-dd");
             DateTime dtnew = Convert.ToDateTime(s2);
+
             Exhibit exhibit = new Exhibit
             {
                 Name = Name,
                 Description = Description,
+                NameEng = NameEng,
+                DescriptionEng = DescriptionEng,
                 Image = Image,
                 CreateDate = dtnew,
-                Rating = 0,
                 Status = statusToDb,
                 Duration = duration,
                 IsDelete = false
@@ -56,7 +59,7 @@ namespace eTourGuide.Service.Services.ImplService
 
         public async Task<int> DeleteExhibit(int id)
         {
-            Exhibit exhibit= _unitOfWork.Repository<Exhibit>().GetById(id);
+            Exhibit exhibit = _unitOfWork.Repository<Exhibit>().GetById(id);
             if (exhibit == null)
             {
                 throw new Exception("Cant Not Found This Exhibit!");
@@ -103,9 +106,10 @@ namespace eTourGuide.Service.Services.ImplService
                     Id = item.Id,
                     Name = item.Name,
                     Description = item.Description,
+                    NameEng = item.NameEng,
+                    DescriptionEng = item.Description,
                     Image = item.Image,
                     CreateDate = createDate.Date.ToString("yyyy-MM-dd"),
-                    Rating = (float)item.Rating,
                     Status = statusConvert,
                     Duration = (TimeSpan)item.Duration,
                     isDelete = (bool)item.IsDelete                 
@@ -115,21 +119,34 @@ namespace eTourGuide.Service.Services.ImplService
             return listExhibitResponse.ToList();
         }
 
+
+        
+
         public List<ExhibitResponse> GetAllExhibitsForUser()
         {
             var rs = _unitOfWork.Repository<Exhibit>().GetAll().Where(e => e.Status == 1 && e.IsDelete == false).AsQueryable();
+
             List<ExhibitResponse> listExhibitResponse = new List<ExhibitResponse>();
             foreach (var item in rs)
             {
-                ExhibitResponse exhibitResponse = new ExhibitResponse()
+                if (item.ExhibitInEvents.Where(exInEvt => exInEvt.Status == true && exInEvt.Event.Status == 2).FirstOrDefault() != null
+                    || item.ExhibitInTopics.Where(exInTopic => exInTopic.Status == true && exInTopic.Topic.Status == 2).FirstOrDefault() != null)
+                {
+                   
+                    ExhibitResponse exhibitResponse = new ExhibitResponse()
                     {
                         Id = item.Id,
                         Name = item.Name,
                         Description = item.Description,
+                        NameEng = item.NameEng,
+                        DescriptionEng = item.Description,
                         Image = item.Image,
-                        Rating = (float)item.Rating,
+                        //Rating = (float)item.Rating,
+                        //TotalFeedback = count
                     };
                     listExhibitResponse.Add(exhibitResponse);
+
+                }             
             }
             return listExhibitResponse.ToList();
         }
@@ -146,9 +163,10 @@ namespace eTourGuide.Service.Services.ImplService
                     Id = item.Id,
                     Name = item.Name,
                     Description = item.Description,
+                    NameEng = item.NameEng,
+                    DescriptionEng = item.Description,
                     Image = item.Image,
                     CreateDate = createDate.Date.ToString("yyyy-MM-dd"),
-                    Rating = (float)item.Rating,
                     Status = "Ready",
                     Duration = (TimeSpan)item.Duration
                 };
@@ -157,57 +175,84 @@ namespace eTourGuide.Service.Services.ImplService
             return listExhibitResponse.ToList();
         }
 
+       
+
         public List<ExhibitResponse> GetHightLightExhibit()
         {
-            int highlightRate = 4;
-            var exhibit = _unitOfWork.Repository<Exhibit>().GetAll().Where(e => e.Status == 1 && e.IsDelete == false).AsQueryable();
-            List<ExhibitResponse> listExhibit = new List<ExhibitResponse>();
-            foreach (var item in exhibit)
-            {
-                int count = 0;
-                var exhibitInFeedback = _unitOfWork.Repository<Feedback>().GetAll().Where(x => x.ExhibittId == item.Id);
-              
-                if (exhibitInFeedback != null)
-                {
-                    count = exhibitInFeedback.Count();
-                 
+            List<ExhibitResponse> listResponse = new List<ExhibitResponse>();
 
-                }
-                ExhibitResponse obj = new ExhibitResponse()
+            //lấy ra list event
+            var listExhibitInEvent = _unitOfWork.Repository<ExhibitInEvent>().GetAll().Where(e => e.Status == true &&  e.Event.Status == 2).AsQueryable();
+            //thêm vào list exhibit
+            if (listExhibitInEvent != null)
+            {
+                foreach (var item in listExhibitInEvent)
                 {
-                    Id = item.Id,
-                    Name = item.Name,
-                    Description = item.Description,
-                    Image = item.Image,
-                    Rating = (double)item.Rating,
-                    TotalFeedback = count 
-                };
-                if (obj.Rating >= highlightRate)
-                {
-                    listExhibit.Add(obj);
+                    ExhibitResponse exhibit = new ExhibitResponse()
+                    {
+                        Id = item.Exhibit.Id,
+                        Name = item.Exhibit.Name,
+                        Description = item.Exhibit.Description,
+                        NameEng = item.Exhibit.NameEng,
+                        DescriptionEng = item.Exhibit.DescriptionEng,
+                        Image = item.Exhibit.Image,
+                        Rating = (double)item.Event.Rating
+                    };
+                    listResponse.Add(exhibit);
                 }
             }
-            return listExhibit.ToList();
+            
+
+            //lấy ra list topic
+            var listExhibitInTopic = _unitOfWork.Repository<ExhibitInTopic>().GetAll().Where(t => t.Status == true && t.Topic.Status == 2).AsQueryable();
+            //thêm vào list exhibit
+            if (listExhibitInTopic != null)
+            {
+                foreach (var item in listExhibitInTopic)
+                {
+                    ExhibitResponse exhibit = new ExhibitResponse()
+                    {
+                        Id = item.Exhibit.Id,
+                        Name = item.Exhibit.Name,
+                        Description = item.Exhibit.Description,
+                        NameEng = item.Exhibit.NameEng,
+                        DescriptionEng = item.Exhibit.DescriptionEng,
+                        Image = item.Exhibit.Image,
+                        Rating = (double)item.Topic.Rating
+                    };
+                    listResponse.Add(exhibit);
+                }
+            }
+
+
+            //sort list theo rating
+            listResponse = listResponse.OrderByDescending(response => response.Rating).ToList();
+            return listResponse.ToList();
         }
+
+        
 
         public List<ExhibitResponse> GetNewExhibit()
         {
-            int numberOfExhibitToDisplays = 10;
+            int numberOfExhibitToDisplays = 20;
             var rs = _unitOfWork.Repository<Exhibit>().GetAll().Where(e => e.Status == 1 && e.IsDelete == false).AsQueryable();
             rs = rs.OrderByDescending(exhibit => exhibit.CreateDate);
             int count = 0;
             List<ExhibitResponse> listExhibitResponse = new List<ExhibitResponse>();
             foreach (var item in rs)
             {
-
-
+                if (item.ExhibitInEvents.Where(exInEvt =>exInEvt.Status == true && exInEvt.Event.Status == 2).FirstOrDefault() != null
+                      || item.ExhibitInTopics.Where(exInTopic =>exInTopic.Status == true && exInTopic.Topic.Status == 2).FirstOrDefault() != null)
+                {
                     ExhibitResponse exhibitResponse = new ExhibitResponse()
                     {
                         Id = item.Id,
                         Name = item.Name,
                         Description = item.Description,
+                        NameEng = item.NameEng,
+                        DescriptionEng = item.Description,
                         Image = item.Image,
-                        Rating = (float)item.Rating,
+                        //Rating = (float)item.Rating,
                     };
                     listExhibitResponse.Add(exhibitResponse);
                     count = count + 1;
@@ -215,19 +260,21 @@ namespace eTourGuide.Service.Services.ImplService
                     {
                         break;
                     }
+                }                  
                             
             }
-  
             return listExhibitResponse.ToList();
         }
 
-        public async Task<int> UpdateExhibit(int id, string Name, string Description, string Image, TimeSpan Duration)
+        public async Task<int> UpdateExhibit(int id, string Name, string Description, string NameEng, string DescriptionEng, string Image, TimeSpan Duration)
         {
             Exhibit exhibit = _unitOfWork.Repository<Exhibit>().GetById(id);
             try
             {
                 exhibit.Name = Name;
                 exhibit.Description = Description;
+                exhibit.NameEng = NameEng;
+                exhibit.DescriptionEng = Description;
                 exhibit.Image = Image;
                 exhibit.Duration = Duration;
 
@@ -271,9 +318,10 @@ namespace eTourGuide.Service.Services.ImplService
                     Id = item.Id,
                     Name = item.Name,
                     Description = item.Description,
+                    NameEng = item.NameEng,
+                    DescriptionEng = item.Description,
                     Image = item.Image,
-                    CreateDate = createDate.Date.ToString("yyyy-MM-dd"),
-                    Rating = (float)item.Rating,
+                    CreateDate = createDate.Date.ToString("yyyy-MM-dd"),                 
                     Status = statusConvert,
                     Duration = (TimeSpan)item.Duration,
                     isDelete = (bool)item.IsDelete
@@ -281,6 +329,25 @@ namespace eTourGuide.Service.Services.ImplService
                 listExhibitResponse.Add(exhibitResponse);
             }
             return listExhibitResponse.ToList();
+        }
+
+        public String GetTopicOrEventContainExhibit(int exhibitId)
+        {
+            string rs = "Không thuộc Chủ đề hay Sự kiện nào!";
+            ExhibitInTopic topicContainExhibit = _unitOfWork.Repository<ExhibitInTopic>().GetAll().Where(t => t.ExhibitId == exhibitId && t.Status == true).FirstOrDefault();
+            if (topicContainExhibit != null)
+            {
+                rs = "Đang thuộc về Chủ đề: " + topicContainExhibit.Topic.Name.ToString();
+                return rs.ToString();
+            }
+
+            ExhibitInEvent eventContainExhibit = _unitOfWork.Repository<ExhibitInEvent>().GetAll().Where(e => e.ExhibitId == exhibitId && e.Status == true).FirstOrDefault();
+            if (eventContainExhibit != null)
+            {
+                rs = "Đang thuộc về Chủ đề: " + eventContainExhibit.Event.Name.ToString();
+                return rs.ToString();
+            }
+            return rs.ToString();
         }
     }
 }

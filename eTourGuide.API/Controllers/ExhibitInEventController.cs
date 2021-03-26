@@ -7,6 +7,7 @@ using eTourGuide.Data.Entity;
 using eTourGuide.Service.Exceptions;
 using eTourGuide.Service.Model.Response;
 using eTourGuide.Service.Services.InterfaceService;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -23,50 +24,52 @@ namespace eTourGuide.API.Controllers
             _exhibitInEventService = exhibitInEventService;
         }
 
-        [HttpGet("get/exhibit/in/event/for/user")]
-        public ActionResult<List<ExhibitResponse>> GetExhibitInEvent(int eventId)
-        {
-            /*try
-            {*/
-                var rs = _exhibitInEventService.GetExhibitInEvent(eventId);
-                return Ok(rs);
-            /*}
-            catch (Exception)
-            {
-                throw new CrudException(System.Net.HttpStatusCode.BadRequest, "There's not Exhibit in this Event!!!");
-            }*/
-        }
 
 
+        //Controller for Delete Exhibit In Event for Admin
+        [Authorize(Roles = "1")]
         [HttpDelete("delete/exhibit/in/event/id={id}")]
         public async Task<ActionResult<int>> DeleteExhibitInEventForAdminAsync(int id)
         {
-           /* try
-            {*/
-                var rs = await _exhibitInEventService.DeleteExhibitInEvent(id);
-                return Ok(rs);
-            /*}
-            catch (Exception e)
-            {
-
-                throw new CrudException(System.Net.HttpStatusCode.BadRequest, "Can not delete exhibit in event!!!");
-            }*/
+           
+            var rs = await _exhibitInEventService.DeleteExhibitInEvent(id);
+            return Ok(rs);
+          
         }
 
 
+        //Controller for get Exhibit in Event for Admin
+        [Authorize(Roles = "1")]
         [HttpGet("get/exhibit/in/event/for/admin")]
         public ActionResult<List<ExhibitResponse>> GetExhibitInEventForAdmin(int eventId)
         {
-           /* try
-            {*/
-                var rs = _exhibitInEventService.GetExhibitInEventForAdmin(eventId);
-                return Ok(rs);
-           /* }
-            catch (Exception e)
-            {
-                e = e.InnerException;
-                throw new CrudException(System.Net.HttpStatusCode.BadRequest, "There's not Exhibit in this Event!!!");
-            }*/
+        
+            var rs = _exhibitInEventService.GetExhibitInEventForAdmin(eventId);
+            return Ok(rs);
+    
+        }
+
+        //Controller for get Exhibit in CLOSED Event for user
+        [Authorize(Roles = "1")]
+        [HttpGet("get/exhibit/in/closed/event/for/admin")]
+        public ActionResult<List<ExhibitResponse>> GetExhibitInClosedEventForAdmin(int eventId)
+        {
+            
+            var rs = _exhibitInEventService.GetExhbitForClosedEvent(eventId);
+            return Ok(rs);
+           
+        }
+
+
+        //================================================================================//
+
+        //Controller for get Exhibit in Event for user
+        [HttpGet("get/exhibit/in/event/for/user")]
+        public ActionResult<List<ExhibitResponse>> GetExhibitInEvent(int eventId)
+        {
+           
+            var rs = _exhibitInEventService.GetExhibitInEvent(eventId);
+            return Ok(rs);
         }
     }
 }
