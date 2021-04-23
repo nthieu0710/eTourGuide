@@ -19,12 +19,13 @@ namespace eTourGuide.Data.Entity
         public string NameEng { get; set; }
         public string DescriptionEng { get; set; }
         public string Image { get; set; }
-        public DateTime? CreateDate { get; set; }
-        public int? Status { get; set; }
-        public TimeSpan? Duration { get; set; }
-        public bool? IsDelete { get; set; }
+        public DateTime CreateDate { get; set; }
+        public int Status { get; set; }
+        public TimeSpan Duration { get; set; }
+        public bool IsDelete { get; set; }
         public string Username { get; set; }
 
+        public virtual Account UsernameNavigation { get; set; }
         public virtual ICollection<ExhibitInEvent> ExhibitInEvents { get; set; }
         public virtual ICollection<ExhibitInTopic> ExhibitInTopics { get; set; }
     }

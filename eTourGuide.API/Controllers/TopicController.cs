@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using eTourGuide.API.Models.Requests;
 using eTourGuide.Data.Entity;
 using eTourGuide.Service.Exceptions;
+using eTourGuide.Service.Helpers;
 using eTourGuide.Service.Model.Response;
 using eTourGuide.Service.Services.InterfaceService;
 using Microsoft.AspNetCore.Authorization;
@@ -26,19 +27,19 @@ namespace eTourGuide.API.Controllers
 
 
         //Controller for Add Topic
-        [Authorize(Roles = "1")]
+        [Authorize(Roles = AccountRole.Admin)]
         [HttpPost("add/topic")]
         public async Task<ActionResult<int>> InsertTopic([FromBody] PostTopicRequest model)
         {
 
-            var rs = await _topicService.AddTopic(model.Name, model.Description, model.NameEng, model.DescriptionEng, model.Image, model.StartDate);          
+            var rs = await _topicService.AddTopic(model.Name, model.Description, model.NameEng, model.DescriptionEng, model.Image, model.StartDate, model.Username);          
             return Ok(rs);
 
         }
 
 
         //Controller for Add Exhibit to Topic for Admin
-        [Authorize(Roles = "1")]
+        [Authorize(Roles = AccountRole.Admin)]
         [HttpPost("add/exhibit/to/topic")]
         public async Task<ActionResult<int>> AddExhibitToTopicForAdmin([FromBody] PostExhibitInTopicRequest model)
         {
@@ -50,7 +51,7 @@ namespace eTourGuide.API.Controllers
 
 
         //Controller for Update Topic
-        [Authorize(Roles = "1")]
+        [Authorize(Roles = AccountRole.Admin)]
         [HttpPut("id={id}")]
         public async Task<ActionResult<int>> UpdateTopic([FromBody] PutTopicRequest model, int id)
         {
@@ -62,7 +63,7 @@ namespace eTourGuide.API.Controllers
 
 
         //Controller for Active Topic
-        [Authorize(Roles = "1")]
+        [Authorize(Roles = AccountRole.Admin)]
         [HttpPut("active/topic/id={id}")]
         public async Task<ActionResult<int>> ActiveTopic(int id)
         {
@@ -73,7 +74,7 @@ namespace eTourGuide.API.Controllers
         }
 
         //Controller for Delete Topic
-        [Authorize(Roles = "1")]
+        [Authorize(Roles = AccountRole.Admin)]
         [HttpDelete("id={id}")]
         public async Task<ActionResult<int>> DeleteTopic(int id)
         {
@@ -84,7 +85,7 @@ namespace eTourGuide.API.Controllers
         }
 
         //Controller for Get All Topcics for Admin
-        [Authorize(Roles = "1")]
+        [Authorize(Roles = AccountRole.Admin)]
         [HttpGet("admin")]
         public ActionResult<List<TopicResponse>> GetAllTopcics()
         {
@@ -93,10 +94,10 @@ namespace eTourGuide.API.Controllers
             return Ok(rs);
 
         }
-     
+
 
         //Controller for Get Topic is not set up Room
-        [Authorize(Roles = "1")]
+        [Authorize(Roles = AccountRole.Admin)]
         [HttpGet("get/topic/has/no/room")]
         public ActionResult<List<TopicResponse>> GetTopicThatHasNoRoom()
         {
@@ -108,7 +109,7 @@ namespace eTourGuide.API.Controllers
 
 
         //Controller for Search Topic by name for Admin
-        [Authorize(Roles = "1")]
+        [Authorize(Roles = AccountRole.Admin)]
         [HttpGet("search-topic-by-name-for-admin")]
         public ActionResult<List<TopicResponse>> SearchTopicByNameForAdmin(string name)
         {

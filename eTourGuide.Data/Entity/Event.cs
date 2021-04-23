@@ -19,12 +19,12 @@ namespace eTourGuide.Data.Entity
         public string NameEng { get; set; }
         public string DescriptionEng { get; set; }
         public string Image { get; set; }
-        public DateTime? CreateDate { get; set; }
+        public DateTime CreateDate { get; set; }
         public double? Rating { get; set; }
-        public int? Status { get; set; }
-        public DateTime? StartDate { get; set; }
-        public DateTime? EndDate { get; set; }
-        public bool? IsDelete { get; set; }
+        public int Status { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime EndDate { get; set; }
+        public bool IsDelete { get; set; }
         public int? RoomId { get; set; }
         public string UserName { get; set; }
 

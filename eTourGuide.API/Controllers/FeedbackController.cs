@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using eTourGuide.API.Models.Requests;
 using eTourGuide.Data.Entity;
 using eTourGuide.Service.Exceptions;
+using eTourGuide.Service.Helpers;
 using eTourGuide.Service.Model.Response;
 using eTourGuide.Service.Services.InterfaceService;
 using Microsoft.AspNetCore.Authorization;
@@ -45,7 +46,7 @@ namespace eTourGuide.API.Controllers
 
 
         //Controller for Enable Feedback For Admin
-        [Authorize(Roles = "1")]
+        [Authorize(Roles = AccountRole.Admin)]
         [HttpPut("enable/feeback/for/admin/id={id}")]
         public async Task<ActionResult<int>> EnableFeedback(int id)
         {
@@ -56,7 +57,7 @@ namespace eTourGuide.API.Controllers
 
 
         //Controller for Disable Spam Feedback For Admin
-        [Authorize(Roles = "1")]
+        [Authorize(Roles = AccountRole.Admin)]
         [HttpPut("disable/feeback/for/admin/id={id}")]
         public async Task<ActionResult<int>> DisableFeedback(int id)
         {
@@ -68,7 +69,7 @@ namespace eTourGuide.API.Controllers
 
 
         //Controller for Get All Topic Feedback for Admin
-        [Authorize(Roles = "1")]
+        [Authorize(Roles = AccountRole.Admin)]
         [HttpGet("get/feedback/event/for/admin")]
         public ActionResult<List<EventFeedbackFromUser>> GetListFeedBackEventForAdmin()
         {
@@ -77,9 +78,9 @@ namespace eTourGuide.API.Controllers
           
         }
 
-        
+
         //Controller for Get All Topic Feedback for Admin
-        [Authorize(Roles = "1")]
+        [Authorize(Roles = AccountRole.Admin)]
         [HttpGet("get/feedback/topic/for/admin")]
         public ActionResult<List<TopicFeedbackFromUser>> GetListFeedBackTopicForAdmin()
         {

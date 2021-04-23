@@ -1,6 +1,7 @@
 ﻿using eTourGuide.Data.Entity;
 using eTourGuide.Data.UnitOfWork;
 using eTourGuide.Service.Exceptions;
+using eTourGuide.Service.Helpers;
 using eTourGuide.Service.Model.Response;
 using eTourGuide.Service.Services.InterfaceService;
 using System;
@@ -40,7 +41,7 @@ namespace eTourGuide.Service.Services.ImplService
 
                     //Get exhibit đó ra để set status thành Ready
                     Exhibit exhibit = _unitOfWork.Repository<Exhibit>().GetById(exhibitId);
-                    exhibit.Status = 0;
+                    exhibit.Status = (int) ExhibitsStatus.Status.Ready;
 
 
                     _unitOfWork.Repository<Exhibit>().Update(exhibit, exhibit.Id);
@@ -54,7 +55,7 @@ namespace eTourGuide.Service.Services.ImplService
                     //nếu k còn obj nào trong topic đó thì set status cho topic đó về New
                     if (exhibitInTopicList.ToList().Count == 0)
                     {
-                        topic.Status = 0;
+                        topic.Status = (int)TopicStatus.Status.New;
                         _unitOfWork.Repository<Topic>().Update(topic, topic.Id);
                     }
 
@@ -81,7 +82,9 @@ namespace eTourGuide.Service.Services.ImplService
             }
 
             var topicTrans = _unitOfWork.Repository<eTourGuide.Data.Entity.ExhibitInTopic>().GetAll()
-                                                    .Where(x => x.Status == true && x.TopicId == id);
+                                                    .Where(x => x.Status == true 
+                                                                && x.TopicId == id
+                                                                && DateTime.Now >= x.Topic.StartDate);
 
             List<ExhibitResponse> listExhibit = new List<ExhibitResponse>();
             if (topicTrans.Count() > 0)
@@ -94,7 +97,7 @@ namespace eTourGuide.Service.Services.ImplService
                         Name = item.Exhibit.Name,
                         Description = item.Exhibit.Description,
                         NameEng = item.Exhibit.NameEng,
-                        DescriptionEng = item.Exhibit.Description,
+                        DescriptionEng = item.Exhibit.DescriptionEng,
                         Image = item.Exhibit.Image,
                     };
                     listExhibit.Add(obj);
@@ -128,10 +131,10 @@ namespace eTourGuide.Service.Services.ImplService
                         Name = item.Exhibit.Name,
                         Description = item.Exhibit.Description,
                         NameEng = item.Exhibit.NameEng,
-                        DescriptionEng = item.Exhibit.Description,
+                        DescriptionEng = item.Exhibit.DescriptionEng,
                         Image = item.Exhibit.Image,
                         CreateDate = createDate.Date.ToString("yyyy-MM-dd"),
-                        Status = "Added",
+                        Status = "Đã được thêm",
                         Duration = (TimeSpan)item.Exhibit.Duration
                     });
                 }
@@ -147,17 +150,17 @@ namespace eTourGuide.Service.Services.ImplService
             List<ExhibitResponse> listRs = new List<ExhibitResponse>();
             string statusConvert = "";
 
-            if (exhibitInTopic.Count() != 0)
+            if (exhibitInTopic.Count() > 0)
             {
                 foreach (var item in exhibitInTopic)
                 {
-                    if (item.Exhibit.Status == 0)
+                    if (item.Exhibit.Status == (int)ExhibitsStatus.Status.Ready)
                     {
-                        statusConvert = "Ready";
+                        statusConvert = "Sẵn sàng";
                     }
-                    else if (item.Exhibit.Status == 1)
+                    else if (item.Exhibit.Status == (int)ExhibitsStatus.Status.Added)
                     {
-                        statusConvert = "Added";
+                        statusConvert = "Đã được thêm";
                     }
 
                     DateTime createDate = (DateTime)item.Exhibit.CreateDate;
@@ -168,7 +171,7 @@ namespace eTourGuide.Service.Services.ImplService
                         Name = item.Exhibit.Name,
                         Description = item.Exhibit.Description,
                         NameEng = item.Exhibit.NameEng,
-                        DescriptionEng = item.Exhibit.Description,
+                        DescriptionEng = item.Exhibit.DescriptionEng,
                         Image = item.Exhibit.Image,
                         CreateDate = createDate.Date.ToString("yyyy-MM-dd"),
                         Status = statusConvert,

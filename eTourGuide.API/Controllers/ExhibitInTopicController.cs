@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using eTourGuide.API.Models.Requests;
 using eTourGuide.Service.Exceptions;
+using eTourGuide.Service.Helpers;
 using eTourGuide.Service.Model.Response;
 using eTourGuide.Service.Services.InterfaceService;
 using Microsoft.AspNetCore.Authorization;
@@ -24,7 +25,7 @@ namespace eTourGuide.API.Controllers
         }
 
         //Controller for Delete Exhibit in Topic for Admin
-        [Authorize(Roles = "1")]
+        [Authorize(Roles = AccountRole.Admin)]
         [HttpDelete("delete/exhibit/in/topic/id={id}")]
         public async Task<ActionResult<int>> DeleteExhibitInTopicForAdminAsync(int id)
         {
@@ -38,7 +39,7 @@ namespace eTourGuide.API.Controllers
 
 
         //Controller for Get Exhibit in Topic for Admin
-        [Authorize(Roles = "1")]
+        [Authorize(Roles = AccountRole.Admin)]
         [HttpGet("get/exhibit/in/topic/for/admin")]
         public ActionResult<List<ExhibitResponse>> GetExhibitInTopicForAdmin(int topicId)
         {
@@ -51,7 +52,7 @@ namespace eTourGuide.API.Controllers
 
 
         //Controller for Get Exhibit in CLOSED Topic for Admin
-        [Authorize(Roles = "1")]
+        [Authorize(Roles = AccountRole.Admin)]
         [HttpGet("get/exhibit/in/closed/topic/for/admin")]
         public ActionResult<List<ExhibitResponse>> GetExhibitInClosedTopicForAdmin(int topicId)
         {

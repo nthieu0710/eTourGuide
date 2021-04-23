@@ -1,6 +1,7 @@
 ﻿using eTourGuide.Data.Entity;
 using eTourGuide.Data.UnitOfWork;
 using eTourGuide.Service.Exceptions;
+using eTourGuide.Service.Helpers;
 using eTourGuide.Service.Model.Response;
 using eTourGuide.Service.Services.InterfaceService;
 using System;
@@ -31,13 +32,12 @@ namespace eTourGuide.Service.Services.ImplService
             DateTime dtnew = Convert.ToDateTime(s2);
 
             Exhibit exhibit = _unitOfWork.Repository<Exhibit>().GetById(exhibitId);
-            
-            
+
+ 
             ExhibitInTopic exhibitInTopic = new ExhibitInTopic
             {
                 ExhibitId = exhibit.Id,
-                TopicId = topicId,
-                RoomId = topic.RoomId,
+                TopicId = topicId,               
                 CreateDate = dtnew,
                 Status = true
             };
@@ -48,12 +48,12 @@ namespace eTourGuide.Service.Services.ImplService
                 await _unitOfWork.Repository<ExhibitInTopic>().InsertAsync(exhibitInTopic);
                 await _unitOfWork.CommitAsync();
 
-                exhibit.Status = 1;
+                exhibit.Status = (int) ExhibitsStatus.Status.Added;
                 _unitOfWork.Repository<Exhibit>().Update(exhibit, exhibit.Id);
 
-                if (topic.Status == 0)
+                if (topic.Status == (int)TopicStatus.Status.New)
                 {
-                    topic.Status = 1;
+                    topic.Status = (int)TopicStatus.Status.Waiting;
                     _unitOfWork.Repository<Topic>().Update(topic, topic.Id);
                 }
                                
@@ -69,12 +69,23 @@ namespace eTourGuide.Service.Services.ImplService
         }
 
         //Implement from Interface ITopicService - thêm mới Topic
-        public async Task<int> AddTopic(string Name, string Description, string NameEng, string DescriptionEng, string Image, DateTime StartDate)
+        public async Task<int> AddTopic(string Name, string Description, string NameEng, string DescriptionEng, string Image, DateTime StartDate, string Username)
         {
-            int statusToDb = 0;
+            int statusToDb = (int)TopicStatus.Status.New;
+            int closedStatus = (int)TopicStatus.Status.Closed;
             DateTime dt = Convert.ToDateTime(DateTime.Now);
             string s2 = dt.ToString("yyyy-MM-dd");
             DateTime dtnew = Convert.ToDateTime(s2);
+
+            var listTopic = _unitOfWork.Repository<Topic>().GetAll().Where(t =>
+                                                                        (t.Status != closedStatus || t.IsDelete != true) 
+                                                                        &&  (t.Name.Equals(Name) || t.NameEng.Equals(NameEng))
+                                                                        ).ToList();
+            if (listTopic.Count() > 0)
+            {
+                throw new Exception("Tên tiếng Việt hoặc tên tiếng Anh của chủ đề đã bị trùng với chủ đề khác!!!");
+            }
+
             Topic topic = new Topic
             {
                 Name = Name,
@@ -87,7 +98,8 @@ namespace eTourGuide.Service.Services.ImplService
                 Rating = 0,
                 Status = statusToDb,
                 IsDelete = false,
-                RoomId = null
+                RoomId = null, 
+                Username = Username
             };        
             try
             {
@@ -108,7 +120,7 @@ namespace eTourGuide.Service.Services.ImplService
             {
                 throw new Exception("Cant Not Found This Topic!");
             }
-            if (topic.Status == 0 || topic.Status == 1 || topic.Status == 3 || topic.Status == 4)
+            if (topic.Status == (int)TopicStatus.Status.New || topic.Status == (int)TopicStatus.Status.Waiting || topic.Status == (int)TopicStatus.Status.Disactive || topic.Status == (int)TopicStatus.Status.Closed)
             {
                
                 //xem coi có exhibit nào đang thuộc topic muốn xóa hay không
@@ -127,7 +139,7 @@ namespace eTourGuide.Service.Services.ImplService
                             {
                                 Exhibit exhibit = _unitOfWork.Repository<Exhibit>().GetById(item.ExhibitId);
                                 //thay đổi status của exhibit thành ready
-                                exhibit.Status = 0;
+                                exhibit.Status = (int) ExhibitsStatus.Status.Ready;
                                 _unitOfWork.Repository<Exhibit>().Update(exhibit, exhibit.Id);
                                 //await _unitOfWork.CommitAsync();
                             }                                                    
@@ -142,15 +154,16 @@ namespace eTourGuide.Service.Services.ImplService
                         }
 
 
-                        int roomId = (int)topic.RoomId;
-                        //nếu topic đang đc chứa trong phòng thì set status lại cho phòng đó
-                        if (roomId > 0)
-                        {
-                            Room room = _unitOfWork.Repository<Room>().GetById(roomId);
-                            room.Status = 0;
-                            //cập nhập room
-                            _unitOfWork.Repository<Room>().Update(room, room.Id);
-                        }
+                    if (topic.RoomId != null)
+                    {
+                        Room room = _unitOfWork.Repository<Room>().GetById((int)topic.RoomId);
+                        room.Status = (int)RoomStatus.Status.Ready;
+                        //cập nhập room
+                        _unitOfWork.Repository<Room>().Update(room, room.Id);
+                    }
+                    
+                            
+                        
                     
                         //set isDelete = true để xóa topic
                         topic.IsDelete = true;
@@ -162,7 +175,7 @@ namespace eTourGuide.Service.Services.ImplService
                         throw new Exception("Can not delete topic!!!");
                     }
             } 
-            else if (topic.Status == 2)
+            else if (topic.Status == (int)TopicStatus.Status.Active)
             {
                 throw new Exception("Can not delete topic because this Topic is happening!!!");
             }
@@ -178,33 +191,33 @@ namespace eTourGuide.Service.Services.ImplService
             List<TopicResponse> listTopicResponse = new List<TopicResponse>();
             foreach (var item in rs)
             {
-                if (item.Status == 0)
+                if (item.Status == (int)TopicStatus.Status.New)
                 {
-                    statusConvert = "New";
+                    statusConvert = "Mới";
                 }
-                else if (item.Status == 1)
+                else if (item.Status == (int)TopicStatus.Status.Waiting)
                 {
-                    statusConvert = "Waiting";
+                    statusConvert = "Đang chờ kích hoạt";
                 }
-                else if (item.Status == 2)
+                else if (item.Status == (int)TopicStatus.Status.Active)
                 {
-                    statusConvert = "Active";
+                    statusConvert = "Đang diễn ra";
                 }
-                else if (item.Status == 3)
+                else if (item.Status == (int)TopicStatus.Status.Disactive)
                 {
-                    statusConvert = "Disactive";
+                    statusConvert = "Tạm dừng";
                 }
-                else if (item.Status == 4)
+                else if (item.Status == (int)TopicStatus.Status.Closed)
                 {
-                    statusConvert = "Closed";
+                    statusConvert = "Đã đóng";
                 }
 
                 string topicInRoom = "Chủ đề này chưa được thiết lập phòng";
-                int roomNo = (int)item.RoomId;
-                if (roomNo > 0)
+                if (item.RoomId != null)
                 {
-                    topicInRoom = "Chủ đề này đang ở phòng: " + roomNo;
+                    topicInRoom = "Chủ đề này đang ở phòng: " + item.Room.No;
                 }
+                
 
                     DateTime createDate = (DateTime)item.CreateDate;
                     DateTime startDate = (DateTime)item.StartDate;
@@ -231,7 +244,10 @@ namespace eTourGuide.Service.Services.ImplService
         public List<TopicResponse> GetAllTopicsForUser()
         {
             
-            var rs = _unitOfWork.Repository<Topic>().GetAll().Where(t => t.Status == 2 && t.IsDelete == false).AsQueryable();
+            var rs = _unitOfWork.Repository<Topic>().GetAll().Where(t => t.Status == (int)TopicStatus.Status.Active 
+                                                                         && t.IsDelete == false
+                                                                         && DateTime.Now >= t.StartDate).AsQueryable();
+
             List<TopicResponse> listTopicResponse = new List<TopicResponse>();
             foreach (var item in rs)
             {               
@@ -281,33 +297,33 @@ namespace eTourGuide.Service.Services.ImplService
             
             foreach (var item in topic)
             {
-                if (item.Status == 0)
+                if (item.Status == (int)TopicStatus.Status.New)
                 {
-                    statusConvert = "New";
+                    statusConvert = "Mới";
                 }
-                else if (item.Status == 1)
+                else if (item.Status == (int)TopicStatus.Status.Waiting)
                 {
-                    statusConvert = "Waiting";
+                    statusConvert = "Đang chờ kích hoạt";
                 }
-                else if (item.Status == 2)
+                else if (item.Status == (int)TopicStatus.Status.Active)
                 {
-                    statusConvert = "Active";
+                    statusConvert = "Đang diễn ra";
                 }
-                else if (item.Status == 3)
+                else if (item.Status == (int)TopicStatus.Status.Disactive)
                 {
-                    statusConvert = "Disactive";
+                    statusConvert = "Tạm dừng";
                 }
-                else if (item.Status == 4)
+                else if (item.Status == (int)TopicStatus.Status.Closed)
                 {
-                    statusConvert = "Closed";
+                    statusConvert = "Đã đóng";
                 }
 
                 string topicInRoom = "Chủ đề này chưa được thiết lập phòng";
-                int roomNo = (int)item.RoomId;
-                if (roomNo > 0)
+                if (item.RoomId != null)
                 {
-                    topicInRoom = "Chủ đề này đang ở phòng: " + roomNo;
+                    topicInRoom = "Chủ đề này đang ở phòng: " + item.RoomId;
                 }
+
 
                     DateTime createDate = (DateTime)item.CreateDate;
                     DateTime startDate = (DateTime)item.StartDate;
@@ -333,12 +349,15 @@ namespace eTourGuide.Service.Services.ImplService
             return listTopicResponse.ToList();
         }
 
-        //Get highlight topic with rating > 4
+        //sort by rating
         public List<TopicResponse> GetHightLightTopic()
         {
-            int highlightRate = 4;
+            //int highlightRate = 4;
 
-            var topic = _unitOfWork.Repository<Topic>().GetAll().Where(t => t.Status == 2 && t.IsDelete == false).AsQueryable();
+            var topic = _unitOfWork.Repository<Topic>().GetAll().Where(t => t.Status == (int)TopicStatus.Status.Active
+                                                                            && t.IsDelete == false
+                                                                            && t.Rating >= 4
+                                                                            && DateTime.Now >= t.StartDate).AsQueryable();
 
             List<TopicResponse> listTopic = new List<TopicResponse>();
 
@@ -366,12 +385,13 @@ namespace eTourGuide.Service.Services.ImplService
                     Rating = (float)item.Rating,
                     TotalFeedback = count
                 };
-                if (topicObj.Rating >= highlightRate)
-                {
+                /*if (topicObj.Rating >= highlightRate)
+                {*/
                     listTopic.Add(topicObj);
-                }
+                /*}*/
      
             }
+            listTopic = listTopic.OrderByDescending(response => response.Rating).ToList();
             return listTopic.ToList();
         }
 
@@ -384,33 +404,33 @@ namespace eTourGuide.Service.Services.ImplService
                 throw new Exception("Can not find Topic!!!");
             }
             string statusConvert = "";
-            if (topic.Status == 0)
+            if (topic.Status == (int)TopicStatus.Status.New)
             {
-                statusConvert = "New";
+                statusConvert = "Mới";
             }
-            else if (topic.Status == 1)
+            else if (topic.Status == (int)TopicStatus.Status.Waiting)
             {
-                statusConvert = "Waiting";
+                statusConvert = "Đang chờ kích hoạt";
             }
-            else if (topic.Status == 2)
+            else if (topic.Status == (int)TopicStatus.Status.Active)
             {
-                statusConvert = "Active ";
+                statusConvert = "Đang diễn ra";
             }
-            else if (topic.Status == 3)
+            else if (topic.Status == (int)TopicStatus.Status.Disactive)
             {
-                statusConvert = "Disactive ";
+                statusConvert = "Tạm dừng";
             }
-            else if (topic.Status == 4)
+            else if (topic.Status == (int)TopicStatus.Status.Closed)
             {
-                statusConvert = "Closed ";
+                statusConvert = "Đã đóng";
             }
 
             string topicInRoom = "Chủ đề này chưa được thiết lập phòng";
-            int roomNo = (int)topic.RoomId;
-            if (roomNo > 0)
+            if (topic.RoomId != null)
             {
-                topicInRoom = "Chủ đề này đang ở phòng: " + roomNo;
+                topicInRoom = "Chủ đề này đang ở phòng: " + topic.RoomId;
             }
+
             DateTime createDate = (DateTime)topic.CreateDate;
             DateTime startDate = (DateTime)topic.StartDate;
             TopicResponse topicResponse = new TopicResponse();
@@ -432,31 +452,33 @@ namespace eTourGuide.Service.Services.ImplService
         public List<TopicResponse> GetTopicHasNoRoom()
         {
             string statusConvert = "";
-            var rs = _unitOfWork.Repository<Topic>().GetAll().Where(t => t.IsDelete == false && t.Status != 4 && t.RoomId == null).AsQueryable();
+            var rs = _unitOfWork.Repository<Topic>().GetAll().Where(t => t.IsDelete == false
+                                                                    && t.Status != (int)TopicStatus.Status.Closed
+                                                                    && t.RoomId == null).AsQueryable();
 
             List<TopicResponse> listTopicResponse = new List<TopicResponse>();
             foreach (var item in rs)
             {
-               
-                if (item.Status == 0)
+
+                if (item.Status == (int)TopicStatus.Status.New)
                 {
-                    statusConvert = "New";
+                    statusConvert = "Mới";
                 }
-                else if (item.Status == 1)
+                else if (item.Status == (int)TopicStatus.Status.Waiting)
                 {
-                    statusConvert = "Waiting";
+                    statusConvert = "Đang chờ kích hoạt";
                 }
-                else if (item.Status == 2)
+                else if (item.Status == (int)TopicStatus.Status.Active)
                 {
-                    statusConvert = "Active";
+                    statusConvert = "Đang diễn ra";
                 }
-                else if (item.Status == 3)
+                else if (item.Status == (int)TopicStatus.Status.Disactive)
                 {
-                    statusConvert = "Disactive";
+                    statusConvert = "Tạm dừng";
                 }
-                else if (item.Status == 4)
+                else if (item.Status == (int)TopicStatus.Status.Closed)
                 {
-                    statusConvert = "Closed";
+                    statusConvert = "Đã đóng";
                 }
                 string topicInRoom = "Chủ đề này chưa được thiết lập phòng";
                 
@@ -495,20 +517,17 @@ namespace eTourGuide.Service.Services.ImplService
             }
            
             //check xem nó đã đc set room chưa        
-            int roomNo = (int)topic.RoomId;
+            //int roomNo = (int)topic.RoomId;
                               
             //nếu chưa có phòng thì trả msg lỗi
             if (topic.RoomId == null)
             {
                 throw new Exception("You must set room for this topic to active!!!");               
             }          
-
-            //nếu đã có phòng
-            if (roomNo > 0)
-            {             
+             
                 try
                     {
-                        topic.Status = 2;
+                        topic.Status = (int) TopicStatus.Status.Active;
                         await _unitOfWork.CommitAsync();
 
                         rs = 1;
@@ -518,10 +537,7 @@ namespace eTourGuide.Service.Services.ImplService
                 {
                     throw new Exception("Update Error Because Some Problem From Server");    
                 }  
-            }else
-            {
-                throw new Exception("Update Error Because Some Problem From Server");
-            }          
+       
         }
 
         //Implement from Interface ITopicService - cập nhập Topic
@@ -533,29 +549,38 @@ namespace eTourGuide.Service.Services.ImplService
             {
                 throw new Exception("Cant Not Found This Topic!");
             }
-            
-            if (Status == "New")
+
+            var listTopic = _unitOfWork.Repository<Topic>().GetAll().Where(t => t.Id != id 
+                                                                        && (t.Status != (int) TopicStatus.Status.Closed || t.IsDelete != true)
+                                                                        && (t.Name.Equals(Name) || t.NameEng.Equals(NameEng))
+                                                                        ).ToList();
+            if (listTopic.Count() > 0)
             {
-                statusToDb = 0;
+                throw new Exception("Tên tiếng Việt hoặc tên tiếng Anh của chủ đề đã bị trùng với chủ đề khác!!!");
             }
-            else if (Status == "Waiting")
+
+            if (Status == "Mới")
+            {
+                statusToDb = (int)TopicStatus.Status.New;
+            }
+            else if (Status == "Đang chờ kích hoạt")
             {              
-                 statusToDb = 1;                             
-            } else if (Status == "Active")
+                 statusToDb = (int)TopicStatus.Status.Waiting;                             
+            } else if (Status == "Đang diễn ra")
             {
-                statusToDb = 2;
-            }else if (Status == "Disactive")
+                statusToDb = (int)TopicStatus.Status.Active;
+            }else if (Status == "Tạm dừng")
             {
-                statusToDb = 3;
-            }else if (Status == "Closed")
+                statusToDb = (int)TopicStatus.Status.Disactive;
+            }else if (Status == "Đã đóng")
             {
-                statusToDb = 4;
+                statusToDb = (int)TopicStatus.Status.Closed;
             }
            
             try
             {
                 //nếu status đc update là closed, xóa obj ra khỏi đó, và xóa topic/Event In Room.
-                if (statusToDb == 4)
+                if (statusToDb == (int)TopicStatus.Status.Closed)
                 {
                     //chech xem có exhibit nào đang trong topic đó k để xóa ra 
                     var checkExhibitInTopic = _unitOfWork.Repository<ExhibitInTopic>().GetAll().Where(e => e.TopicId == id && e.Status == true).AsQueryable();
@@ -572,7 +597,7 @@ namespace eTourGuide.Service.Services.ImplService
 
                             Exhibit exhibit = _unitOfWork.Repository<Exhibit>().GetById(item.ExhibitId);
                             //thay đổi status của exhibit thành ready
-                            exhibit.Status = 0;
+                            exhibit.Status = (int)ExhibitsStatus.Status.Ready;
                             _unitOfWork.Repository<Exhibit>().Update(exhibit, exhibit.Id);
                             //await _unitOfWork.CommitAsync();
                         }
@@ -581,16 +606,19 @@ namespace eTourGuide.Service.Services.ImplService
                      
                     }
                     //check xem topic đó có đang ở room nào không để xóa ra
-                    int roomNo = (int)topic.RoomId;
-                    if (roomNo > 0)
+                    if (topic.RoomId != null)
                     {
-                        topic.RoomId = null;
-
                         Room room = _unitOfWork.Repository<Room>().GetAll().Where(r => r.Id == topic.RoomId).FirstOrDefault();
                         //set status của room thành 0
-                        room.Status = 0;
+                        room.Status = (int) RoomStatus.Status.Ready;
                         _unitOfWork.Repository<Room>().Update(room, room.Id);
-                    }                                        
+
+                        topic.RoomId = null;
+
+                        
+                    }
+
+                                                         
 
                 }
 

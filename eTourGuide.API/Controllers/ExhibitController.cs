@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using eTourGuide.API.Models.Requests;
 using eTourGuide.Data.Entity;
 using eTourGuide.Service.Exceptions;
+using eTourGuide.Service.Helpers;
 using eTourGuide.Service.Model.Response;
 using eTourGuide.Service.Services.InterfaceService;
 using Microsoft.AspNetCore.Authorization;
@@ -27,19 +28,19 @@ namespace eTourGuide.API.Controllers
 
 
         //Controller for Add Exhibit
-        [Authorize(Roles = "1")]
+        [Authorize(Roles = AccountRole.Admin)]
         [HttpPost("add/exhibit")]
         public async Task<ActionResult<int>> InsertExhibit([FromBody] PostExhibitRequest model)
         {
            
-            var rs = await _exhibitService.AddExhibit(model.Name, model.Description, model.NameEng, model.DescriptionEng, model.Image, model.Duration);
+            var rs = await _exhibitService.AddExhibit(model.Name, model.Description, model.NameEng, model.DescriptionEng, model.Image, model.Duration, model.Username);
             return Ok(rs);
            
         }
-        
-        
+
+
         //Controller for Update Exhibit
-        [Authorize(Roles = "1")]
+        //[Authorize(Roles = AccountRole.Admin)]
         [HttpPut("id={id}")]
         public async Task<ActionResult<int>> UpdateExhibit([FromBody] PutExhibitRequest model, int id)
         {
@@ -51,7 +52,7 @@ namespace eTourGuide.API.Controllers
 
 
         //Controller for Delete Event
-        [Authorize(Roles = "1")]
+        [Authorize(Roles = AccountRole.Admin)]
         [HttpDelete("id={id}")]
         public async Task<ActionResult<int>> DeleteExhibit(int id)
         {
@@ -63,7 +64,7 @@ namespace eTourGuide.API.Controllers
 
 
         //Controller for Delete Event
-        [Authorize(Roles = "1")]
+        [Authorize(Roles = AccountRole.Admin)]
         [HttpGet("get-topic-or-event-contain-exhibit")]
         public  ActionResult<String> GetTopicOrEventContainExhibitForAdmin([FromQuery] int exhibitId)
         {
@@ -75,7 +76,7 @@ namespace eTourGuide.API.Controllers
 
 
         //Controller for Get All Exhibit for Admin
-        [Authorize(Roles = "1")]
+        [Authorize(Roles = AccountRole.Admin)]
         [HttpGet("get/all/exhibit/for/admin")]
         public ActionResult<List<ExhibitResponse>> GetAllExhibitsForAdmin()
         {        
@@ -86,7 +87,7 @@ namespace eTourGuide.API.Controllers
 
 
         //Controller for get Exhibit is not in any topic or event for Admin
-        [Authorize(Roles = "1")]
+        [Authorize(Roles = AccountRole.Admin)]
         [HttpGet("get/available/exhibit")]
         public ActionResult<List<ExhibitResponse>> GetAvailableExhibit()
         {
@@ -98,7 +99,7 @@ namespace eTourGuide.API.Controllers
 
 
         //Controller for Search by name exhibit for Admin
-        [Authorize(Roles = "1")]
+        [Authorize(Roles = AccountRole.Admin)]
         [HttpGet("search-exhibit-by-name-for-admin")]
         public ActionResult<List<ExhibitResponse>> SearchExhibitByNameForAdmin(string name)
         {

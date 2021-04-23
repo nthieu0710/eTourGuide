@@ -10,7 +10,7 @@ namespace eTourGuide.Service.Services.InterfaceService
     public interface IExhibitService
     {
         //tạo mới 1 hiện vật
-        Task<int> AddExhibit(string Name, string Description, string NameEng, string DescriptionEng, string Image, TimeSpan duration);
+        Task<int> AddExhibit(string Name, string Description, string NameEng, string DescriptionEng, string Image, TimeSpan duration, string Username);
 
         //cập nhập 1 hiện vật
         Task<int> UpdateExhibit(int id, string Name, string Description, string NameEng, string DescriptionEng, string Image, TimeSpan Duration);

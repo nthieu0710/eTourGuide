@@ -11,10 +11,10 @@ namespace eTourGuide.Data.Entity
         public int? EventId { get; set; }
         public int? TopicId { get; set; }
         public string VisitorName { get; set; }
-        public double? Rating { get; set; }
+        public double Rating { get; set; }
         public string Description { get; set; }
-        public DateTime? DateTime { get; set; }
-        public bool? Status { get; set; }
+        public DateTime DateTime { get; set; }
+        public bool Status { get; set; }
 
         public virtual Event Event { get; set; }
         public virtual Topic Topic { get; set; }

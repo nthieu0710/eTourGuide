@@ -1,6 +1,7 @@
 ﻿using eTourGuide.Data.Entity;
 using eTourGuide.Data.UnitOfWork;
 using eTourGuide.Service.Exceptions;
+using eTourGuide.Service.Helpers;
 using eTourGuide.Service.Model.Response;
 using eTourGuide.Service.Services.InterfaceService;
 using System;
@@ -19,9 +20,19 @@ namespace eTourGuide.Service.Services.ImplService
         {
             _unitOfWork = unitOfWork;
         }
-        public async Task<int> AddEvent(string Name, string Description, string NameEng, string DescriptionEng, string Image, DateTime StartDate, DateTime EndDate)
+        public async Task<int> AddEvent(string Name, string Description, string NameEng, string DescriptionEng, string Image, DateTime StartDate, DateTime EndDate, string Username)
         {
-            int statusToDb = 0;
+
+            var listEvent = _unitOfWork.Repository<Event>().GetAll().Where(e =>
+                                                                        (e.Status != (int)EventStatus.Status.Closed || e.IsDelete != true)
+                                                                        && (e.Name.Equals(Name) || e.NameEng.Equals(NameEng))
+                                                                        ).ToList();
+            if (listEvent.Count() > 0)
+            {
+                throw new Exception("Tên tiếng Việt hoặc tên tiếng Anh của sự kiện này đã bị trùng với sự kiện khác!!!");
+            }
+
+            int statusToDb = (int)EventStatus.Status.New;
             DateTime dt = Convert.ToDateTime(DateTime.Now);
             string s2 = dt.ToString("yyyy-MM-dd");
             DateTime dtnew = Convert.ToDateTime(s2);
@@ -39,7 +50,8 @@ namespace eTourGuide.Service.Services.ImplService
                 StartDate = StartDate,
                 EndDate = EndDate,
                 IsDelete = false,
-                RoomId = null
+                RoomId = null,
+                UserName = Username
             };
             try
             {
@@ -69,7 +81,6 @@ namespace eTourGuide.Service.Services.ImplService
             {
                 ExhibitId = exhibit.Id,
                 EventId= eventId,
-                RoomId = evt.RoomId,
                 CreateDate = dtnew,
                 Status = true
             };
@@ -80,12 +91,12 @@ namespace eTourGuide.Service.Services.ImplService
                 await _unitOfWork.Repository<ExhibitInEvent>().InsertAsync(exhibitInEvent);
                 await _unitOfWork.CommitAsync();
 
-                exhibit.Status = 1;
+                exhibit.Status = (int)ExhibitsStatus.Status.Added;
                 _unitOfWork.Repository<Exhibit>().Update(exhibit, exhibit.Id);
 
-                if (evt.Status == 0)
+                if (evt.Status == (int)EventStatus.Status.New)
                 {
-                    evt.Status = 1;
+                    evt.Status = (int)EventStatus.Status.Waiting;
                     _unitOfWork.Repository<Event>().Update(evt, evt.Id);
                 }
                          
@@ -108,7 +119,7 @@ namespace eTourGuide.Service.Services.ImplService
             {
                 throw new Exception("Cant Not Found This Event!");
             }
-            if (evt.Status == 0 || evt.Status == 1 || evt.Status == 3 || evt.Status == 4)
+            if (evt.Status == (int)EventStatus.Status.New || evt.Status == (int)EventStatus.Status.Waiting || evt.Status == (int)EventStatus.Status.Disactive || evt.Status == (int)EventStatus.Status.Closed)
             {
                 //xem coi có exhibit nào đang thuộc event muốn xóa hay không
                 var checkExhibitInEvent = _unitOfWork.Repository<ExhibitInEvent>().GetAll().Where(e => e.EventId == id).AsQueryable();
@@ -126,7 +137,7 @@ namespace eTourGuide.Service.Services.ImplService
                         {
                             Exhibit exhibit = _unitOfWork.Repository<Exhibit>().GetById(item.ExhibitId);
                             //thay đổi status của exhibit thành ready
-                            exhibit.Status = 0;
+                            exhibit.Status = (int)ExhibitsStatus.Status.Ready;
                             _unitOfWork.Repository<Exhibit>().Update(exhibit, exhibit.Id);
                             //await _unitOfWork.CommitAsync();
                         }
@@ -141,15 +152,13 @@ namespace eTourGuide.Service.Services.ImplService
                     }
 
 
-                    int roomId = (int)evt.RoomId;
-                    //nếu event đang đc chứa trong phòng thì set status lại cho phòng đó
-                    if (roomId > 0)
+                    if (evt.RoomId != null)
                     {
-                        Room room = _unitOfWork.Repository<Room>().GetById(roomId);
-                        room.Status = 0;
+                        Room room = _unitOfWork.Repository<Room>().GetById((int)evt.RoomId);
+                        room.Status = (int)RoomStatus.Status.Ready;
                         //cập nhập room
                         _unitOfWork.Repository<Room>().Update(room, room.Id);
-                    }
+                    }              
 
                     //set isDelete = true để xóa topic
                     evt.IsDelete = true;
@@ -161,7 +170,7 @@ namespace eTourGuide.Service.Services.ImplService
                     throw new Exception("Can not delete event!!!");
                 }
             }
-            else if (evt.Status == 2)
+            else if (evt.Status == (int)EventStatus.Status.Active)
             {
                 throw new Exception("Can not delete event!!!");
             }
@@ -177,30 +186,39 @@ namespace eTourGuide.Service.Services.ImplService
                 throw new Exception("Cant Not Found This Topic!");
             }
 
-            if (Status == "New")
+            var listEvent = _unitOfWork.Repository<Event>().GetAll().Where(e => e.Id != id
+                                                                        && (e.Status != (int)EventStatus.Status.Closed || e.IsDelete != true)
+                                                                        && (e.Name.Equals(Name) || e.NameEng.Equals(NameEng))
+                                                                        ).ToList();
+            if (listEvent.Count() > 0)
             {
-                statusToDb = 0;
+                throw new Exception("Tên tiếng Việt hoặc tên tiếng Anh của sự kiện này đã bị trùng với sự kiện khác!!!");
             }
-            else if (Status == "Waiting")
+
+            if (Status == "Mới")
+            {
+                statusToDb = (int)EventStatus.Status.New;
+            }
+            else if (Status == "Đang chờ kích hoạt")
             {             
-                statusToDb = 1;                          
+                statusToDb = (int)EventStatus.Status.Waiting;                          
             }
-            else if (Status == "Active")
+            else if (Status == "Đang diễn ra")
             {
-                statusToDb = 2;
+                statusToDb = (int)EventStatus.Status.Active;
             }
-            else if (Status == "Disactive")
+            else if (Status == "Tạm dừng")
             {
-                statusToDb = 3;
+                statusToDb = (int)EventStatus.Status.Disactive;
             }
-            else if (Status == "Closed")
+            else if (Status == "Đã đóng")
             {
-                statusToDb = 4;
+                statusToDb = (int)EventStatus.Status.Closed;
             }
            
             try
             {
-                if (statusToDb == 4)
+                if (statusToDb == (int)EventStatus.Status.Closed)
                 {
                     var checkExhibitInEvent = _unitOfWork.Repository<ExhibitInEvent>().GetAll().Where(e => e.Status == true && e.EventId == id).AsQueryable();
                     if (checkExhibitInEvent.Count() > 0)
@@ -216,7 +234,7 @@ namespace eTourGuide.Service.Services.ImplService
                             Exhibit exhibit = _unitOfWork.Repository<Exhibit>().GetById(item.ExhibitId);
 
                             //thay đổi status của exhibit thành ready
-                            exhibit.Status = 0;
+                            exhibit.Status = (int)ExhibitsStatus.Status.Ready;
                             _unitOfWork.Repository<Exhibit>().Update(exhibit, exhibit.Id);
                             //await _unitOfWork.CommitAsync();
 
@@ -224,18 +242,18 @@ namespace eTourGuide.Service.Services.ImplService
                         _unitOfWork.Repository<ExhibitInEvent>().UpdateRange(checkExhibitInEvent);                    
                     }
                     //check xem topic đó có đang ở room nào không để xóa ra
-                    int roomNo = (int)evt.RoomId;
-                    if (roomNo > 0)
+                    if (evt.RoomId != null)
                     {
-                        evt.RoomId = null;
 
                         Room room = _unitOfWork.Repository<Room>().GetAll().Where(r => r.Id == evt.RoomId).FirstOrDefault();
                         //set status của room thành 0
-                        room.Status = 0;
+                        room.Status = (int) RoomStatus.Status.Ready;
                         _unitOfWork.Repository<Room>().Update(room, room.Id);
-                    }
 
+                        evt.RoomId = null;
 
+                      
+                    }                                                             
                 }
 
                 evt.Name = Name;
@@ -270,7 +288,7 @@ namespace eTourGuide.Service.Services.ImplService
             }
 
             //check xem nó đã đc set room chưa        
-            int roomNo = (int)evt.RoomId;
+            
 
             //nếu chưa có phòng thì trả msg lỗi
             if (evt.RoomId == null)
@@ -279,12 +297,10 @@ namespace eTourGuide.Service.Services.ImplService
             }
 
 
-            //nếu đã có phòng
-            if (roomNo > 0)
-            {
+            //nếu đã có phòng        
                 try
                 {
-                    evt.Status = 2;
+                    evt.Status = (int)EventStatus.Status.Active;
                     await _unitOfWork.CommitAsync();
 
                     rs = 1;
@@ -294,11 +310,7 @@ namespace eTourGuide.Service.Services.ImplService
                 {
                     throw new Exception("Active Error Because Some Problem From Server");
                 }
-            }
-            else
-            {
-                throw new Exception("Active Error Because Some Problem From Server");
-            }
+            
         }
 
         public List<EventResponse> SearchEventForAdmin(string name)
@@ -316,33 +328,34 @@ namespace eTourGuide.Service.Services.ImplService
             
             foreach (var item in evt)
             {
-                if (item.Status == 0)
+                if (item.Status == (int)EventStatus.Status.New)
                 {
-                    statusConvert = "New";
+                    statusConvert = "Mới";
                 }
-                else if (item.Status == 1)
+                else if (item.Status == (int)EventStatus.Status.Waiting)
                 {
-                    statusConvert = "Waiting";
+                    statusConvert = "Đang chờ kích hoạt";
                 }
-                else if (item.Status == 2)
+                else if (item.Status == (int)EventStatus.Status.Active)
                 {
-                    statusConvert = "Active";
+                    statusConvert = "Đang diễn ra";
                 }
-                else if (item.Status == 3)
+                else if (item.Status == (int)EventStatus.Status.Disactive)
                 {
-                    statusConvert = "Disactive";
+                    statusConvert = "Tạm dừng";
                 }
-                else if (item.Status == 4)
+                else if (item.Status == (int)EventStatus.Status.Closed)
                 {
-                    statusConvert = "Closed";
+                    statusConvert = "Đã đóng";
                 }
 
                 string eventInRoom = "Sự kiện này chưa được thiết lập phòng";
-                int roomNo = (int)item.RoomId;
-                if (roomNo > 0)
+                if (item.RoomId != null)
                 {
-                    eventInRoom = "Sự kiện này đang ở phòng: " + roomNo;
+                    eventInRoom = "Chủ đề này đang ở phòng: " + item.RoomId;
                 }
+
+                
 
                 DateTime createDate = (DateTime)item.CreateDate;
                 DateTime startDate = (DateTime)item.StartDate;
@@ -378,33 +391,34 @@ namespace eTourGuide.Service.Services.ImplService
             List<EventResponse> listEventResponse = new List<EventResponse>();
             foreach (var item in rs)
             {
-                if (item.Status == 0)
+                if (item.Status == (int)EventStatus.Status.New)
                 {
-                    statusConvert = "New";
+                    statusConvert = "Mới";
                 }
-                else if (item.Status == 1)
+                else if (item.Status == (int)EventStatus.Status.Waiting)
                 {
-                    statusConvert = "Waiting";
+                    statusConvert = "Đang chờ kích hoạt";
                 }
-                else if (item.Status == 2)
+                else if (item.Status == (int)EventStatus.Status.Active)
                 {
-                    statusConvert = "Active";
+                    statusConvert = "Đang diễn ra";
                 }
-                else if (item.Status == 3)
+                else if (item.Status == (int)EventStatus.Status.Disactive)
                 {
-                    statusConvert = "Disactive";
+                    statusConvert = "Tạm dừng";
                 }
-                else if (item.Status == 4)
+                else if (item.Status == (int)EventStatus.Status.Closed)
                 {
-                    statusConvert = "Closed";
+                    statusConvert = "Đã đóng";
                 }
 
                 string eventInRoom = "Chủ đề này chưa được thiết lập phòng";
-                int roomNo = (int)item.RoomId;
-                if (roomNo > 0)
+                if (item.RoomId != null)
                 {
-                    eventInRoom = "Chủ đề này đang ở phòng: " + roomNo;
+                    eventInRoom = "Chủ đề này đang ở phòng: " + item.Room.No;
                 }
+
+               
 
                 DateTime createDate = (DateTime)item.CreateDate;
                 DateTime startDate = (DateTime)item.StartDate;
@@ -435,7 +449,10 @@ namespace eTourGuide.Service.Services.ImplService
 
         public List<EventResponse> GetAllEventsForUser()
         {
-            var rs = _unitOfWork.Repository<Event>().GetAll().Where(e => e.Status == 2 && e.IsDelete == false).AsQueryable();
+            var rs = _unitOfWork.Repository<Event>().GetAll().Where(e => e.Status == (int)EventStatus.Status.Active 
+                                                                         && e.IsDelete == false
+                                                                         && DateTime.Now >= e.StartDate
+                                                                         && DateTime.Now <= e.EndDate).AsQueryable();
             List<EventResponse> listEventResponse = new List<EventResponse>();
             foreach (var item in rs)
             {
@@ -474,25 +491,30 @@ namespace eTourGuide.Service.Services.ImplService
 
         public List<EventResponse> GetCurrentEvent()
         {
-            var evt = _unitOfWork.Repository<Event>().GetAll().Where(e => e.Status == 2 && e.IsDelete == false).AsQueryable();
+            var evt = _unitOfWork.Repository<Event>().GetAll().Where(e => e.Status == (int)EventStatus.Status.Active 
+                                                                          && e.IsDelete == false
+                                                                          && DateTime.Now >= e.StartDate
+                                                                          && DateTime.Now <= e.EndDate).OrderByDescending(e => e.StartDate).AsQueryable();
             List<EventResponse> listRes = new List<EventResponse>();
+            List<EventResponse> listCurrentRes = new List<EventResponse>();
             if (evt.Count() > 0)
             {
+                //evt = evt.OrderByDescending(response => response.StartDate).ToList();
+
                 foreach (var item in evt)
                 {
-                    int count = 0;
+                    /*int count = 0;
                     var evtInFeedback = _unitOfWork.Repository<Feedback>().GetAll().Where(x => x.EventId == item.Id);
 
                     if (evtInFeedback.Count() > 0)
                     {
                         count = evtInFeedback.Count();
-                    }
+                    }*/
 
 
 
                     EventResponse res = new EventResponse();
-                    if (item.StartDate <= DateTime.Now && item.EndDate >= DateTime.Now)
-                    {
+                    
 
                         DateTime startDate = (DateTime)item.StartDate;
                         DateTime endDate = (DateTime)item.EndDate;
@@ -506,45 +528,55 @@ namespace eTourGuide.Service.Services.ImplService
                         res.StartDate = startDate.Date.ToString("dd/MM/yyyy");
                         res.EndDate = endDate.Date.ToString("dd/MM/yyyy");
                         res.Rating = (double)item.Rating;
-                        res.TotalFeedback = count;
+                        //res.TotalFeedback = count;
 
                         listRes.Add(res);
+                        
+                    
+                }
+               // listRes = listRes.OrderByDescending(response => response.StartDate).ToList();
 
+                foreach (var item in listRes)
+                {
+                    listCurrentRes.Add(item);
+                    if (listCurrentRes.Count() == 5)
+                    {
+                        break;
                     }
                 }
-            }
-            return listRes;
+            }           
+            return listCurrentRes;
         }
 
         public List<EventResponse> GetEventHasNoRoom()
         {
             string statusConvert = "";
-            var rs = _unitOfWork.Repository<Event>().GetAll().Where(e => e.IsDelete == false && e.Status != 4 && e.RoomId == null).AsQueryable();
+            var rs = _unitOfWork.Repository<Event>().GetAll().Where(e => e.IsDelete == false && e.Status != (int)EventStatus.Status.Closed && e.RoomId == null).AsQueryable();
             List<EventResponse> listEventResponse = new List<EventResponse>();
             foreach (var item in rs)
             {
-                
-                    if (item.Status == 0)
-                    {
-                        statusConvert = "New";
-                    }
-                    else if (item.Status == 1)
-                    {
-                        statusConvert = "Waiting";
-                    }
-                    else if (item.Status == 2)
-                    {
-                        statusConvert = "Active";
-                    }
-                    else if (item.Status == 3)
-                    {
-                        statusConvert = "Disactive";
-                    }
-                    else if (item.Status == 4)
-                    {
-                        statusConvert = "Closed";
-                    }
-                    string evntInRoom = "Sự kiện này chưa được thiết lập phòng";
+
+                if (item.Status == (int)EventStatus.Status.New)
+                {
+                    statusConvert = "Mới";
+                }
+                else if (item.Status == (int)EventStatus.Status.Waiting)
+                {
+                    statusConvert = "Đang chờ kích hoạt";
+                }
+                else if (item.Status == (int)EventStatus.Status.Active)
+                {
+                    statusConvert = "Đang diễn ra";
+                }
+                else if (item.Status == (int)EventStatus.Status.Disactive)
+                {
+                    statusConvert = "Tạm dừng";
+                }
+                else if (item.Status == (int)EventStatus.Status.Closed)
+                {
+                    statusConvert = "Đã đóng";
+                }
+                string evntInRoom = "Sự kiện này chưa được thiết lập phòng";
 
                     DateTime createDate = (DateTime)item.CreateDate;
                     DateTime startDate = (DateTime)item.StartDate;
@@ -571,10 +603,16 @@ namespace eTourGuide.Service.Services.ImplService
             return listEventResponse.ToList();
         }
 
+
+        //sort by rating
         public List<EventResponse> GetListHightLightEvent()
         {
-            int highlightRate = 4;
-            var evt = _unitOfWork.Repository<Event>().GetAll().Where(e => e.Status == 2 && e.IsDelete == false).AsQueryable();
+            //int highlightRate = 4;
+            var evt = _unitOfWork.Repository<Event>().GetAll().Where(e => e.Status == (int)EventStatus.Status.Active 
+                                                                          && e.IsDelete == false
+                                                                          && e.Rating >= 4
+                                                                          && DateTime.Now >= e.StartDate
+                                                                          && DateTime.Now <= e.EndDate).AsQueryable();
             List<EventResponse> listEvent = new List<EventResponse>();
             foreach (var item in evt)
             {
@@ -604,11 +642,12 @@ namespace eTourGuide.Service.Services.ImplService
                     TotalFeedback = count
 
                 };
-                if (eventObj.Rating >= highlightRate)
-                {
+                /*if (eventObj.Rating >= highlightRate)
+                {*/
                     listEvent.Add(eventObj);
-                }
+                /*}*/
             }
+            listEvent = listEvent.OrderByDescending(response => response.Rating).ToList();
             return listEvent.ToList();
         }
     }

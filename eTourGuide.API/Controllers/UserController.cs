@@ -24,9 +24,9 @@ namespace eTourGuide.API.Controllers
 
         //Controller for Search Exhibit/Event/Topic by name for User
         [HttpGet("search-by-name")]
-        public async Task<ActionResult<SearchResponse>> SearchByNameForUser(string name)
+        public async Task<ActionResult<SearchResponse>> SearchByNameForUser(string language, string name)
         {        
-            var rs = _userService.SearchByName(name);
+            var rs = _userService.SearchByName(language, name);
             return Ok(rs);
          
         }

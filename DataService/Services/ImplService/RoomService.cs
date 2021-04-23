@@ -1,6 +1,7 @@
 ﻿using eTourGuide.Data.Entity;
 using eTourGuide.Data.UnitOfWork;
 using eTourGuide.Service.Exceptions;
+using eTourGuide.Service.Helpers;
 using eTourGuide.Service.Model.Response;
 using eTourGuide.Service.Services.InterfaceService;
 using Microsoft.EntityFrameworkCore;
@@ -32,23 +33,16 @@ namespace eTourGuide.Service.Services.ImplService
             Room room = _unitOfWork.Repository<Room>().GetById(roomId);
 
             
-            var exhibitInEvent = _unitOfWork.Repository<ExhibitInEvent>().GetAll().Where(e => e.Status == true && e.EventId == eventId).AsQueryable();
+            
             try
             {
                 evt.RoomId = room.Id;
                 _unitOfWork.Repository<Event>().Update(evt, evt.Id);
 
-                room.Status = 1;
+                room.Status = (int) RoomStatus.Status.Added;
                 _unitOfWork.Repository<Room>().Update(room, room.Id);
 
-                if (exhibitInEvent.Count() != 0)
-                {
-                    foreach (var item in exhibitInEvent)
-                    {
-                        item.RoomId = room.Id;
-                    }
-                    _unitOfWork.Repository<ExhibitInEvent>().UpdateRange(exhibitInEvent);
-                }
+              
                 
                 await _unitOfWork.CommitAsync();
 
@@ -67,26 +61,14 @@ namespace eTourGuide.Service.Services.ImplService
 
             Topic topic = _unitOfWork.Repository<Topic>().GetById(topicId);
             Room room = _unitOfWork.Repository<Room>().GetById(roomId);         
-
-            var exhibitInTopic = _unitOfWork.Repository<ExhibitInTopic>().GetAll().Where(e => e.Status == true && e.TopicId == topicId).AsQueryable();
-
+           
             try
             {
                 topic.RoomId = room.Id;
                 _unitOfWork.Repository<Topic>().Update(topic, topic.Id);
 
-                room.Status = 1;
+                room.Status = (int)RoomStatus.Status.Added;
                 _unitOfWork.Repository<Room>().Update(room, room.Id);
-
-
-                if (exhibitInTopic.Count() != 0)
-                {
-                    foreach (var item in exhibitInTopic)
-                    {
-                        item.RoomId = topic.RoomId;
-                    }
-                     _unitOfWork.Repository<ExhibitInTopic>().UpdateRange(exhibitInTopic);
-                }
                 
                 await _unitOfWork.CommitAsync();
 
@@ -105,29 +87,20 @@ namespace eTourGuide.Service.Services.ImplService
             
             Event evt = _unitOfWork.Repository<Event>().GetById(eventId);
 
-            if (evt.Status == 2)
+            if (evt.Status == (int)EventStatus.Status.Active)
             {
                 throw new Exception("Can not Delete Event in This Room because Event is active now!!!");
             }
                                   
-            var exhibitInEvent = _unitOfWork.Repository<ExhibitInEvent>().GetAll().Where(e => e.Status == true && e.EventId == eventId).AsQueryable();
+            //var exhibitInEvent = _unitOfWork.Repository<ExhibitInEvent>().GetAll().Where(e => e.Status == true && e.EventId == eventId).AsQueryable();
             try
             {
+                Room room = _unitOfWork.Repository<Room>().GetAll().Where(r => r.Id == evt.RoomId).FirstOrDefault();
+                room.Status = (int)RoomStatus.Status.Ready;
+                _unitOfWork.Repository<Room>().Update(room, room.Id);
+
                 evt.RoomId = null;
                 _unitOfWork.Repository<Event>().Update(evt, evt.Id);
-
-                if (exhibitInEvent.Count() > 0)
-                {
-                    foreach (var item in exhibitInEvent)
-                    {
-                        item.RoomId = null;
-                    }
-                        _unitOfWork.Repository<ExhibitInEvent>().UpdateRange(exhibitInEvent);
-                }
-
-                Room room = _unitOfWork.Repository<Room>().GetAll().Where(r => r.Id == evt.RoomId).FirstOrDefault();                   
-                room.Status = 0;
-                _unitOfWork.Repository<Room>().Update(room, room.Id);
 
                 await _unitOfWork.CommitAsync();
                 rs = 1;
@@ -145,31 +118,23 @@ namespace eTourGuide.Service.Services.ImplService
            
             Topic topic = _unitOfWork.Repository<Topic>().GetById(topicId);
 
-            if (topic.Status == 2)
+            if (topic.Status == (int)TopicStatus.Status.Active)
             {
                 throw new Exception("Can not Delete Topic in This Room because Topic is active now!!!");
             }
            
-            var exhibitInTopic = _unitOfWork.Repository<ExhibitInTopic>().GetAll().Where(e => e.Status == true && e.TopicId == topicId).AsQueryable();
+           // var exhibitInTopic = _unitOfWork.Repository<ExhibitInTopic>().GetAll().Where(e => e.Status == true && e.TopicId == topicId).AsQueryable();
 
             try
             {
+                Room room = _unitOfWork.Repository<Room>().GetAll().Where(r => r.Id == topic.RoomId).FirstOrDefault();
+                room.Status = (int)RoomStatus.Status.Ready;
+                _unitOfWork.Repository<Room>().Update(room, room.Id);
+
+
                 topic.RoomId = null;
                 _unitOfWork.Repository<Topic>().Update(topic, topic.Id);
 
-                if (exhibitInTopic.Count() > 0)
-                {
-                    foreach (var item in exhibitInTopic)
-                    {
-                        item.RoomId = null;
-                    }
-                    _unitOfWork.Repository<ExhibitInTopic>().UpdateRange(exhibitInTopic);
-                }
-
-
-                Room room = _unitOfWork.Repository<Room>().GetAll().Where(r => r.Id == topic.RoomId).FirstOrDefault();                   
-                room.Status = 0;
-                _unitOfWork.Repository<Room>().Update(room, room.Id);
 
                 await _unitOfWork.CommitAsync();
                 rs = 1;
@@ -184,18 +149,28 @@ namespace eTourGuide.Service.Services.ImplService
 
         public List<RoomResponse> GetAllRoom()
         {
-            var rs = _unitOfWork.Repository<Room>().GetAll().Where(r => r.Status == 1).AsQueryable();
+            var rs = _unitOfWork.Repository<Room>().GetAll().Where(r => r.Status == (int)RoomStatus.Status.Added);
             List<RoomResponse> roomResponses = new List<RoomResponse>();
             foreach (var item in rs)
             {
-                RoomResponse room = new RoomResponse
+                if (item.Events.Where(evtInRoom =>item.Id == evtInRoom.RoomId
+                                                  && evtInRoom.Status == (int)EventStatus.Status.Active
+                                                  && DateTime.Now >= evtInRoom.StartDate
+                                                  && DateTime.Now <= evtInRoom.EndDate).FirstOrDefault() != null
+
+                    || item.Topics.Where(topicInRoom => item.Id == topicInRoom.RoomId
+                                                        && topicInRoom.Status == (int)TopicStatus.Status.Active
+                                                        && DateTime.Now >= topicInRoom.StartDate).FirstOrDefault() != null)
                 {
-                    Id = item.Id,
-                    Floor = (int)item.Floor,
-                    No = (int)item.No,
-                    Status = (int)item.Status
-                };
-                roomResponses.Add(room);
+                    RoomResponse room = new RoomResponse
+                    {
+                        Id = item.Id,
+                        Floor = (int)item.Floor,
+                        No = (int)item.No,
+                        Status = (int)item.Status
+                    };
+                    roomResponses.Add(room);
+                }       
             }
             return roomResponses.ToList();
         }
@@ -204,7 +179,11 @@ namespace eTourGuide.Service.Services.ImplService
         {
             //check ở nhánh Event
             var exhibitInEvent = _unitOfWork.Repository<eTourGuide.Data.Entity.ExhibitInEvent>()
-                    .GetAll().Where(x => x.RoomId == roomId && x.Status == true && x.Event.Status == 2);
+                    .GetAll().Where(x => x.Event.RoomId == roomId 
+                                         && x.Status == true 
+                                         && x.Event.Status == (int)EventStatus.Status.Active
+                                         && DateTime.Now >= x.Event.StartDate
+                                         && DateTime.Now <= x.Event.EndDate);
 
             List<ExhibitResponse> listExhibitResponse = new List<ExhibitResponse>();
 
@@ -228,7 +207,10 @@ namespace eTourGuide.Service.Services.ImplService
 
             //check ở nhánh Topic
             var exhibitInTopic = _unitOfWork.Repository<eTourGuide.Data.Entity.ExhibitInTopic>()
-                    .GetAll().Where(x => x.RoomId == roomId && x.Status == true && x.Topic.Status == 2);
+                    .GetAll().Where(x => x.Topic.RoomId == roomId 
+                                         && x.Status == true 
+                                         && x.Topic.Status == (int)TopicStatus.Status.Active
+                                         && DateTime.Now >= x.Topic.StartDate);
 
             if (exhibitInTopic.Count() > 0)
             {
@@ -248,89 +230,12 @@ namespace eTourGuide.Service.Services.ImplService
             }
             return listExhibitResponse;
         }
-
-        public List<RoomResponse> GetRoomForExhibit(int[] exhibitId)
-        {
-            //Check ở nhánh Event
-            //Get List ExhibitInEvent vs ExhibitId truyền vào
-            List<eTourGuide.Data.Entity.ExhibitInEvent> listExhibitInEvent = new List<eTourGuide.Data.Entity.ExhibitInEvent>();
-            foreach (int item in exhibitId)
-            {
-                var exhibitInEvent = _unitOfWork.Repository<eTourGuide.Data.Entity.ExhibitInEvent>()
-                    .GetAll().Where(x => x.ExhibitId == item && x.Status == true && x.Event.Status == 2).FirstOrDefault();
-                if (exhibitInEvent != null)
-                {
-                    listExhibitInEvent.Add(exhibitInEvent);
-                }
-            }
-
-            //Get Room 
-            Dictionary<int, object> hash = new Dictionary<int, object>();
-            List<RoomResponse> listRoom = new List<RoomResponse>();
-            if (listExhibitInEvent != null)
-            {
-                foreach (var item in listExhibitInEvent)
-                {
-                    var room = _unitOfWork.Repository<Room>().GetAll().Where(x => x.Id == item.RoomId).FirstOrDefault();
-                    RoomResponse roomRs = new RoomResponse()
-                    {
-                        Id = room.Id,
-                        Floor = (int)room.Floor,
-                        No = (int)room.No,
-                        Status = (int)room.Status
-                    };
-                    if (!hash.ContainsKey(roomRs.Id))
-                    {
-                        hash.Add(roomRs.Id, roomRs);
-                    }
-                }
-            }
-
-
-            //Check ở nhánh Topic
-            //Get List ExhibitInTopic vs ExhibitId truyền vào
-            List<eTourGuide.Data.Entity.ExhibitInTopic> listExhibitInTopic = new List<eTourGuide.Data.Entity.ExhibitInTopic>();
-            foreach (int item in exhibitId)
-            {
-                var exhibitInTopic = _unitOfWork.Repository<eTourGuide.Data.Entity.ExhibitInTopic>().GetAll().Where(x => x.ExhibitId == item && x.Status == true && x.Topic.Status == 2).FirstOrDefault();
-                if (exhibitInTopic != null)
-                {
-                    listExhibitInTopic.Add(exhibitInTopic);
-                }
-            }
-
-            //Get Room 
-            if (listExhibitInTopic != null)
-            {
-                foreach (var item in listExhibitInTopic)
-                {
-                    var room = _unitOfWork.Repository<Room>().GetAll().Where(x => x.Id == item.RoomId).FirstOrDefault();
-                    RoomResponse roomRs = new RoomResponse()
-                    {
-                        Id = room.Id,
-                        Floor = (int)room.Floor,
-                        No = (int)room.No,
-                        Status = (int)room.Status
-                    };
-                    if (!hash.ContainsKey(roomRs.Id))
-                    {
-                        hash.Add(roomRs.Id, roomRs);
-                    }
-                }
-            }
-
-            foreach (KeyValuePair<int, object> r in hash)
-            {
-                listRoom.Add((RoomResponse)r.Value);
-            }
-            return listRoom.ToList();
-        }
-
+        
         public async Task<ObjectResponseInRoomForAdmin> GetTopicOrEventInRoom(int roomId)
         {
 
-            Event evt = _unitOfWork.Repository<Event>().GetAll().Where(e => e.RoomId == roomId).FirstOrDefault();
-            Topic topic = _unitOfWork.Repository<Topic>().GetAll().Where(t => t.RoomId == roomId).FirstOrDefault();
+            Event evt = _unitOfWork.Repository<Event>().GetAll().Where(e => e.RoomId == roomId && e.IsDelete == false).FirstOrDefault();
+            Topic topic = _unitOfWork.Repository<Topic>().GetAll().Where(t => t.RoomId == roomId && t.IsDelete == false).FirstOrDefault();
 
 
             ObjectResponseInRoomForAdmin response = null;
@@ -345,25 +250,25 @@ namespace eTourGuide.Service.Services.ImplService
                 
                 string statusConvert = "";
 
-                if (evt.Status == 0)
+                if (evt.Status == (int) EventStatus.Status.New)
                 {
-                    statusConvert = "New";
+                    statusConvert = "Mới";
                 }
-                else if (evt.Status == 1)
+                else if (evt.Status == (int)EventStatus.Status.Waiting)
                 {
-                    statusConvert = "Waiting";
+                    statusConvert = "Đang chờ kích hoạt";
                 }
-                else if (evt.Status == 2)
+                else if (evt.Status == (int)EventStatus.Status.Active)
                 {
-                    statusConvert = "Active";
+                    statusConvert = "Đang diễn ra";
                 }
-                else if (evt.Status == 3)
+                else if (evt.Status == (int)EventStatus.Status.Disactive)
                 {
-                    statusConvert = "Disactive";
+                    statusConvert = "Tạm dừng";
                 }
-                else if (evt.Status == 4)
+                else if (evt.Status == (int)EventStatus.Status.Closed)
                 {
-                    statusConvert = "Closed";
+                    statusConvert = "Đã đóng";
                 }
 
 
@@ -383,7 +288,8 @@ namespace eTourGuide.Service.Services.ImplService
                     EndDate = endDate.Date.ToString("yyyy-MM-dd"),
                     Type = "Event"
                 };
-                
+
+          
             }
 
             //check ở phía topic in room
@@ -395,25 +301,25 @@ namespace eTourGuide.Service.Services.ImplService
 
                 string statusConvert = "";
 
-                if (topic.Status == 0)
+                if (topic.Status == (int) TopicStatus.Status.New)
                 {
-                    statusConvert = "New";
+                    statusConvert = "Mới";
                 }
-                else if (topic.Status == 1)
+                else if (topic.Status == (int)TopicStatus.Status.Waiting)
                 {
-                    statusConvert = "Waiting";
+                    statusConvert = "Đang chờ kích hoạt";
                 }
-                else if (topic.Status == 2)
+                else if (topic.Status == (int)TopicStatus.Status.Active)
                 {
-                    statusConvert = "Active";
+                    statusConvert = "Đang diễn ra";
                 }
-                else if (topic.Status == 3)
+                else if (topic.Status == (int)TopicStatus.Status.Disactive)
                 {
-                    statusConvert = "Disactive";
+                    statusConvert = "Tạm dừng";
                 }
-                else if (topic.Status == 4)
+                else if (topic.Status == (int)TopicStatus.Status.Closed)
                 {
-                    statusConvert = "Closed";
+                    statusConvert = "Đã đóng";
                 }
 
 
@@ -432,28 +338,26 @@ namespace eTourGuide.Service.Services.ImplService
                     StartDate = startDate.Date.ToString("yyyy-MM-dd"),
                     Type = "Topic"
                 };
-
+                
             }           
-            return response;    
+
+            if (response == null)
+            {
+                throw new Exception("There is no Topic or Event in this Room");
+            }
+            return response;
+
         }
 
-
-
-
-
-
-
-
-
-        public List<RoomResponse> GetRoomFromListExhibit(List<int> exhibitId)
+        public async Task<List<RoomResponse>> GetRoomFromListExhibit(List<int> exhibitId)
         {
             //Check ở nhánh Event
             //Get List ExhibitInEvent vs ExhibitId truyền vào
             List<eTourGuide.Data.Entity.ExhibitInEvent> listExhibitInEvent = new List<eTourGuide.Data.Entity.ExhibitInEvent>();
             foreach (int item in exhibitId)
             {
-                var exhibitInEvent = _unitOfWork.Repository<eTourGuide.Data.Entity.ExhibitInEvent>()
-                    .GetAll().Where(x => x.ExhibitId == item && x.Status == true && x.Event.Status == 2).FirstOrDefault();
+                var exhibitInEvent = await _unitOfWork.Repository<eTourGuide.Data.Entity.ExhibitInEvent>()
+                    .GetAll().Where(x => x.ExhibitId == item && x.Status == true && x.Event.Status == (int)EventStatus.Status.Active).FirstOrDefaultAsync();
                 if (exhibitInEvent != null)
                 {
                     listExhibitInEvent.Add(exhibitInEvent);
@@ -463,11 +367,12 @@ namespace eTourGuide.Service.Services.ImplService
             //Get Room 
             Dictionary<int, object> hash = new Dictionary<int, object>();
             List<RoomResponse> listRoom = new List<RoomResponse>();
+
             if (listExhibitInEvent != null)
             {
                 foreach (var item in listExhibitInEvent)
                 {
-                    var room = _unitOfWork.Repository<Room>().GetAll().Where(x => x.Id == item.RoomId).FirstOrDefault();
+                    var room = _unitOfWork.Repository<Room>().GetAll().Where(x => x.Id == item.Event.RoomId).FirstOrDefault();
                     RoomResponse roomRs = new RoomResponse()
                     {
                         Id = room.Id,
@@ -488,7 +393,7 @@ namespace eTourGuide.Service.Services.ImplService
             List<eTourGuide.Data.Entity.ExhibitInTopic> listExhibitInTopic = new List<eTourGuide.Data.Entity.ExhibitInTopic>();
             foreach (int item in exhibitId)
             {
-                var exhibitInTopic = _unitOfWork.Repository<eTourGuide.Data.Entity.ExhibitInTopic>().GetAll().Where(x => x.ExhibitId == item && x.Status == true && x.Topic.Status == 2).FirstOrDefault();
+                var exhibitInTopic = await _unitOfWork.Repository<eTourGuide.Data.Entity.ExhibitInTopic>().GetAll().Where(x => x.ExhibitId == item && x.Status == true && x.Topic.Status == (int)TopicStatus.Status.Active).FirstOrDefaultAsync();
                 if (exhibitInTopic != null)
                 {
                     listExhibitInTopic.Add(exhibitInTopic);
@@ -500,7 +405,7 @@ namespace eTourGuide.Service.Services.ImplService
             {
                 foreach (var item in listExhibitInTopic)
                 {
-                    var room = _unitOfWork.Repository<Room>().GetAll().Where(x => x.Id == item.RoomId).FirstOrDefault();
+                    var room = _unitOfWork.Repository<Room>().GetAll().Where(x => x.Id == item.Topic.RoomId).FirstOrDefault();
                     RoomResponse roomRs = new RoomResponse()
                     {
                         Id = room.Id,
@@ -524,5 +429,90 @@ namespace eTourGuide.Service.Services.ImplService
             return listRoom.ToList();
         }
 
+        public List<RoomResponse> GetRoomFromFloor(int floorNo, int status)
+        {
+            List<RoomResponse> listRoomResponse = new List<RoomResponse>();
+
+            //lấy những phòng chưa có event và topic
+            if (status == (int) RoomStatus.Status.Ready)
+            {
+                var listRoomReadyFromFloor = _unitOfWork.Repository<Room>().GetAll()
+                                    .Where(r => r.Status == (int)RoomStatus.Status.Ready
+                                            && r.FloorNavigation.FloorNo == floorNo
+                                            && r.Floor == r.FloorNavigation.Id
+                                            && r.FloorNavigation.MapId == r.FloorNavigation.Map.Id
+                                            && r.FloorNavigation.Map.Status == true).ToList();
+
+                if (listRoomReadyFromFloor.Count() > 0)
+                {
+                    foreach (var item in listRoomReadyFromFloor)
+                    {
+                        RoomResponse roomResponse = new RoomResponse()
+                        {
+                            Id = item.Id,
+                            No = (int)item.No,
+                            Floor = (int)item.Floor,
+                            Status = (int)item.Status
+                        };
+                        listRoomResponse.Add(roomResponse);
+                    }
+                }
+
+            }
+
+            //lấy những phòng đã có event hoặc topic
+            if (status == (int)RoomStatus.Status.Added)
+            {
+                var listRoomAddedFromFloor = _unitOfWork.Repository<Room>().GetAll()
+                                    .Where(r => r.Status == (int)RoomStatus.Status.Added
+                                            && r.FloorNavigation.FloorNo == floorNo
+                                            && r.Floor == r.FloorNavigation.Id
+                                            && r.FloorNavigation.MapId == r.FloorNavigation.Map.Id
+                                            && r.FloorNavigation.Map.Status == true).ToList();
+
+                if (listRoomAddedFromFloor.Count() > 0)
+                {
+                    foreach (var item in listRoomAddedFromFloor)
+                    {
+                        RoomResponse roomResponse = new RoomResponse()
+                        {
+                            Id = item.Id,
+                            No = (int)item.No,
+                            Floor = (int)item.Floor,
+                            Status = (int)item.Status
+                        };
+                        listRoomResponse.Add(roomResponse);
+                    }
+                }
+
+            }
+
+
+            //lấy tất cả
+            if (status == 2)
+            {
+                var listRoomFromFloor = _unitOfWork.Repository<Room>().GetAll()
+                                    .Where(r => r.FloorNavigation.FloorNo == floorNo
+                                            && r.Floor == r.FloorNavigation.Id
+                                            && r.FloorNavigation.MapId == r.FloorNavigation.Map.Id
+                                            && r.FloorNavigation.Map.Status == true).ToList();
+
+                if (listRoomFromFloor.Count() > 0)
+                {
+                    foreach (var item in listRoomFromFloor)
+                    {
+                        RoomResponse roomResponse = new RoomResponse()
+                        {
+                            Id = item.Id,
+                            No = (int)item.No,
+                            Floor = (int)item.Floor,
+                            Status = (int)item.Status
+                        };
+                        listRoomResponse.Add(roomResponse);
+                    }
+                }
+            }
+            return listRoomResponse.ToList();
+        }
     }
 }

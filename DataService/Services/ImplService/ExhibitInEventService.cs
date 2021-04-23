@@ -1,6 +1,7 @@
 ﻿using eTourGuide.Data.Entity;
 using eTourGuide.Data.UnitOfWork;
 using eTourGuide.Service.Exceptions;
+using eTourGuide.Service.Helpers;
 using eTourGuide.Service.Model.Response;
 using eTourGuide.Service.Services.InterfaceService;
 using System;
@@ -23,7 +24,7 @@ namespace eTourGuide.Service.Services.ImplService
         public async Task<int> DeleteExhibitInEvent(int exhibitId)
         {
             int rs = 0;
-            //lấy obj trong bảng ExhibitInEvent chứa eventId và exhibitId đó
+            //lấy exhibit trong bảng ExhibitInEvent chứa eventId và exhibitId đó
             ExhibitInEvent exhibitInEvent = _unitOfWork.Repository<ExhibitInEvent>().GetAll()
                                             .Where(e => e.Status == true && e.ExhibitId == exhibitId).FirstOrDefault();
             
@@ -37,7 +38,7 @@ namespace eTourGuide.Service.Services.ImplService
 
                     //Get exhibit đó ra để set status thành Ready
                     Exhibit exhibit = _unitOfWork.Repository<Exhibit>().GetById(exhibitId);
-                    exhibit.Status = 0;
+                    exhibit.Status = (int)ExhibitsStatus.Status.Ready;
 
 
                     _unitOfWork.Repository<Exhibit>().Update(exhibit, exhibit.Id);
@@ -49,7 +50,7 @@ namespace eTourGuide.Service.Services.ImplService
 
                     if (exhibitInEventList.ToList().Count == 0)
                     {
-                        evt.Status = 0;
+                        evt.Status = (int)EventStatus.Status.New;
                         _unitOfWork.Repository<Event>().Update(evt, evt.Id);
                     }
 
@@ -74,7 +75,10 @@ namespace eTourGuide.Service.Services.ImplService
                 throw new Exception("Can not found Event!!!");
             }
 
-            var evtTrans = _unitOfWork.Repository<ExhibitInEvent>().GetAll().Where(x => x.Status == true && x.EventId == id);
+            var evtTrans = _unitOfWork.Repository<ExhibitInEvent>().GetAll().Where(x => x.Status == true 
+                                                                                        && x.EventId == id
+                                                                                        && DateTime.Now >= x.Event.StartDate
+                                                                                        && DateTime.Now <= x.Event.EndDate);
             List<ExhibitResponse> listExhibit = new List<ExhibitResponse>();
             if (evtTrans.Count() > 0)
             {
@@ -86,7 +90,7 @@ namespace eTourGuide.Service.Services.ImplService
                         Name = item.Exhibit.Name,
                         Description = item.Exhibit.Description,
                         NameEng = item.Exhibit.NameEng,
-                        DescriptionEng = item.Exhibit.Description,
+                        DescriptionEng = item.Exhibit.DescriptionEng,
                         Image = item.Exhibit.Image,
                     };
                     listExhibit.Add(obj);
@@ -118,10 +122,10 @@ namespace eTourGuide.Service.Services.ImplService
                         Name = item.Exhibit.Name,
                         Description = item.Exhibit.Description,
                         NameEng = item.Exhibit.NameEng,
-                        DescriptionEng = item.Exhibit.Description,
+                        DescriptionEng = item.Exhibit.DescriptionEng,
                         Image = item.Exhibit.Image,
                         CreateDate = createDate.Date.ToString("yyyy-MM-dd"),
-                        Status = "Added",
+                        Status = "Đã được thêm",
                         Duration = (TimeSpan)item.Exhibit.Duration
                     });
                 }
@@ -136,17 +140,17 @@ namespace eTourGuide.Service.Services.ImplService
             List<ExhibitResponse> listRs = new List<ExhibitResponse>();
             string statusConvert = "";
 
-            if (exhibitInEvent.Count() != 0)
+            if (exhibitInEvent.Count() > 0)
             {
                 foreach (var item in exhibitInEvent)
                 {
-                    if (item.Exhibit.Status == 0)
+                    if (item.Exhibit.Status == (int)ExhibitsStatus.Status.Ready)
                     {
-                        statusConvert = "Ready";
+                        statusConvert = "Sẵn sàng";
                     }
-                    else if (item.Exhibit.Status == 1)
+                    else if (item.Exhibit.Status == (int)ExhibitsStatus.Status.Added)
                     {
-                        statusConvert = "Added";
+                        statusConvert = "Đã được thêm";
                     }
 
                     DateTime createDate = (DateTime)item.Exhibit.CreateDate;
@@ -157,7 +161,7 @@ namespace eTourGuide.Service.Services.ImplService
                         Name = item.Exhibit.Name,
                         Description = item.Exhibit.Description,
                         NameEng = item.Exhibit.NameEng,
-                        DescriptionEng = item.Exhibit.Description,
+                        DescriptionEng = item.Exhibit.DescriptionEng,
                         Image = item.Exhibit.Image,
                         CreateDate = createDate.Date.ToString("yyyy-MM-dd"),
                         Status = statusConvert,

@@ -1,4 +1,5 @@
 ﻿using eTourGuide.Data.Entity;
+using eTourGuide.Service.Helpers;
 using eTourGuide.Service.Model.Response;
 using System;
 using System.Collections.Generic;
@@ -28,12 +29,15 @@ namespace eTourGuide.Service.Services.InterfaceService
         Task<ObjectResponseInRoomForAdmin> GetTopicOrEventInRoom(int roomId);
 
 
+
+        List<RoomResponse> GetRoomFromFloor(int floorNo, int status);
+
         //------------------------------------------------------------------------------------------------------------------------------//
         //------------------------------------------------------------------------------------------------------------------------------//
 
 
-        //dựa vào các exhibit user chọn để get ra đc phòng của chúng
-        List<RoomResponse> GetRoomForExhibit(int[] exhibitId);
+        
+        
 
         //dưa vào phòng đã chọn để show tất cả exhibit trong đó
         List<ExhibitResponse> GetExhibitFromRoom(int roomId);
@@ -41,15 +45,10 @@ namespace eTourGuide.Service.Services.InterfaceService
         //lấy ra những phòng đang có chứa event or topic
         List<RoomResponse> GetAllRoom();
 
+        Task<List<RoomResponse>> GetRoomFromListExhibit(List<int> exhibitId);
 
 
 
-
-
-
-
-
-        List<RoomResponse> GetRoomFromListExhibit(List<int> exhibitId);
 
     }
 }

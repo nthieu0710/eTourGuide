@@ -10,7 +10,7 @@ namespace eTourGuide.Service.Services.InterfaceService
     public interface IEventService
     {
         //thêm mới 1 sự kiện
-        Task<int> AddEvent(string Name, string Description, string NameEng, string DescriptionEng, string Image, DateTime StartDate, DateTime EndDate);
+        Task<int> AddEvent(string Name, string Description, string NameEng, string DescriptionEng, string Image, DateTime StartDate, DateTime EndDate, string Username);
 
         //cập nhập 1 event
         Task<int> UpdateEvent(int id, string Name, string Description, string NameEng, string DescriptionEng, string Image, string Status, DateTime StartDate, DateTime EndDate);

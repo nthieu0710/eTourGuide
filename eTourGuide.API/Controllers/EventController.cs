@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using eTourGuide.API.Models.Requests;
 using eTourGuide.Data.Entity;
 using eTourGuide.Service.Exceptions;
+using eTourGuide.Service.Helpers;
 using eTourGuide.Service.Model.Response;
 using eTourGuide.Service.Services.InterfaceService;
 using Microsoft.AspNetCore.Authorization;
@@ -26,18 +27,18 @@ namespace eTourGuide.API.Controllers
 
 
         //Controller for Add Event
-        [Authorize(Roles = "1")]
+        [Authorize(Roles = AccountRole.Admin)]
         [HttpPost]
         public async Task<ActionResult<int>> InsertEvent([FromBody] PostEventRequest model)
         {
 
-            var rs = await _eventService.AddEvent(model.Name, model.Description, model.NameEng, model.DescriptionEng, model.Image, model.StartDate, model.EndDate);
+            var rs = await _eventService.AddEvent(model.Name, model.Description, model.NameEng, model.DescriptionEng, model.Image, model.StartDate, model.EndDate, model.Username);
             return Ok(rs);
            
         }
 
         //Controller for Add Exhibit To Event
-        [Authorize(Roles = "1")]
+        [Authorize(Roles = AccountRole.Admin)]
         [HttpPost("add/exhibit/to/event")]
         public async Task<ActionResult<int>> AddExhibitToEventForAdmin([FromBody] PostExhibitInEventRequest model)
         {
@@ -48,7 +49,7 @@ namespace eTourGuide.API.Controllers
 
 
         //Controller for Update Event
-        [Authorize(Roles = "1")]
+        [Authorize(Roles = AccountRole.Admin)]
         [HttpPut("id={id}")]
         public async Task<ActionResult<int>> UpdateEvent([FromBody] PutEventRequest model, int id)
         {
@@ -60,7 +61,7 @@ namespace eTourGuide.API.Controllers
 
 
         //Controller for Active Event
-        [Authorize(Roles = "1")]
+        [Authorize(Roles = AccountRole.Admin)]
         [HttpPut("active/event/id={id}")]
         public async Task<ActionResult<int>> ActiveEvent(int id)
         {
@@ -72,7 +73,7 @@ namespace eTourGuide.API.Controllers
 
 
         //Controller for Delete Event
-        [Authorize(Roles = "1")]
+        [Authorize(Roles = AccountRole.Admin)]
         [HttpDelete("id={id}")]
         public async Task<ActionResult<int>> DeleteEvent(int id)
         {
@@ -83,7 +84,7 @@ namespace eTourGuide.API.Controllers
         }
 
         //Controller for Get All Events
-        [Authorize(Roles = "1")]
+        [Authorize(Roles = AccountRole.Admin)]
         [HttpGet("getAllEvent/Admin")]
         public ActionResult<List<EventResponse>> GetAllEventsForAdmin()
         {
@@ -93,10 +94,10 @@ namespace eTourGuide.API.Controllers
 
         }
 
-             
+
 
         //Controller for Get Event is not in any Room
-        [Authorize(Roles = "1")]
+        [Authorize(Roles = AccountRole.Admin)]
         [HttpGet("get/event/has/no/room")]
         public ActionResult<List<EventResponse>> GetEventThatHasNoRoom()
         {
@@ -108,7 +109,7 @@ namespace eTourGuide.API.Controllers
 
 
         //Controller for Search by Event Name Admin
-        [Authorize(Roles = "1")]
+        [Authorize(Roles = AccountRole.Admin)]
         [HttpGet("search-event-by-name-for-admin")]
         public ActionResult<List<EventResponse>> SearchEventByNameForAdmin(string name)
         {

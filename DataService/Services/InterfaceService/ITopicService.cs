@@ -10,7 +10,7 @@ namespace eTourGuide.Service.Services.InterfaceService
     public interface ITopicService
     {
         //Tạo mới 1 Topic
-        Task<int> AddTopic(string Name, string Description, string NameEng, string DescriptionEng, string Image, DateTime StartDate);
+        Task<int> AddTopic(string Name, string Description, string NameEng, string DescriptionEng, string Image, DateTime StartDate, string Username);
 
         //Cập nhập Topic
         Task<int> UpdateTopic(int id, string Name, string Description, string NameEng, string Descriptioneng, string Image, DateTime StartDate, string Status);

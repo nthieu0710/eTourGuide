@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using eTourGuide.Data.Entity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using System;
 using System.Linq;
@@ -26,6 +27,6 @@ namespace eTourGuide.Data.Repository
         void InsertRange(IQueryable<TEntity> entities);
 
         public EntityEntry<TEntity> Delete(TEntity entity);
-
+        
     }
 }

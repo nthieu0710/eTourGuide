@@ -13,10 +13,8 @@ namespace eTourGuide.API.Models.Requests
         public string NameEng { get; set; }
         public string DescriptionEng { get; set; }
         public string Image { get; set; }
-        //public DateTime CreateDate { get; set; }
         public DateTime StartDate { get; set; }
-        //public float Rating { get; set; }
-        //public string Status { get; set; }
-        //public Boolean isDelete { get; set; }
+        public string Username { get; set; }
+
     }
 }

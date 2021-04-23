@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using eTourGuide.API.Models.Requests;
 using eTourGuide.Data.Entity;
 using eTourGuide.Service.Exceptions;
+using eTourGuide.Service.Helpers;
 using eTourGuide.Service.Model.Response;
 using eTourGuide.Service.Services.InterfaceService;
 using Microsoft.AspNetCore.Authorization;
@@ -25,7 +26,7 @@ namespace eTourGuide.API.Controllers
         }
 
         //Controller for Set Room for Topic
-        [Authorize(Roles = "1")]
+        [Authorize(Roles = AccountRole.Admin)]
         [HttpPost("add/topic/in/room")]
         public async Task<ActionResult<int>> AddTopicToRoomForAdmin([FromBody] PostTopicInRoomRequest model)
         {
@@ -36,7 +37,7 @@ namespace eTourGuide.API.Controllers
         }
 
         //Controller for Set Room for Event
-        [Authorize(Roles = "1")]
+        [Authorize(Roles = AccountRole.Admin)]
         [HttpPost("add/event/in/room")]
         public async Task<ActionResult<int>> AddEventToRoomForAdmin([FromBody] PostEvemtInRoomRequest model)
         {
@@ -48,7 +49,7 @@ namespace eTourGuide.API.Controllers
 
 
         //Controller for Delete Topic in Room
-        [Authorize(Roles = "1")]
+        [Authorize(Roles = AccountRole.Admin)]
         [HttpDelete("delete/topic/in/room/id={id}")]
         public async Task<ActionResult<int>> DeleteTopicInRoomForAdminAsync(int id)
         {
@@ -59,7 +60,7 @@ namespace eTourGuide.API.Controllers
         }
 
         //Controller for Delete Event in Room
-        [Authorize(Roles = "1")]
+        [Authorize(Roles = AccountRole.Admin)]
         [HttpDelete("delete/event/in/room/id={id}")]
         public async Task<ActionResult<int>> DeleteEventInRoomForAdminAsync(int id)
         {
@@ -73,17 +74,28 @@ namespace eTourGuide.API.Controllers
 
 
         //Controller for Get Event or Topic in Room
-        [Authorize(Roles = "1")]
+        [Authorize(Roles = AccountRole.Admin)]
         [HttpGet("get/event/or/topic/in/room")]
-        public ActionResult<ObjectResponseInRoomForAdmin> GetEventOrTopicInRoom(int roomId)
+        public async Task<ActionResult<ObjectResponseInRoomForAdmin>> GetEventOrTopicInRoom(int roomId)
         {
 
-            var rs = _roomService.GetTopicOrEventInRoom(roomId);
+            var rs = await _roomService.GetTopicOrEventInRoom(roomId);
             return Ok(rs);
 
         }
 
-       
+
+        [Authorize(Roles = AccountRole.Admin)]
+        [HttpGet("get-room-from-floor")]
+        public ActionResult<List<RoomResponse>> GetRoom(int floorNo, int status)
+        {
+
+            var rs = _roomService.GetRoomFromFloor(floorNo, status);
+            return Ok(rs);
+
+        }
+
+
 
 
         //=============================================================//
@@ -91,10 +103,10 @@ namespace eTourGuide.API.Controllers
 
         //Controller for Get Room from Exhibit was chosen by User
         [HttpGet("get/room/from/exhibit")]
-        public ActionResult<List<RoomResponse>> GetRoom([FromQuery] int[] exhibitId)
+        public async Task<ActionResult<List<RoomResponse>>> GetRoom([FromQuery] List<int> exhibitId)
         {
             
-            var rs = _roomService.GetRoomForExhibit(exhibitId);
+            var rs =  await _roomService.GetRoomFromListExhibit(exhibitId);
             return Ok(rs);
 
         }

@@ -14,16 +14,15 @@ namespace eTourGuide.Data.Entity
         }
 
         public int Id { get; set; }
-        public string DescriptionEng { get; set; }
-        public string DescriptionVie { get; set; }
-        public int? Type { get; set; }
+        public int Type { get; set; }
         public double Dx { get; set; }
         public double Dy { get; set; }
-        public int Floor { get; set; }
-        public int RoomId { get; set; }
-        public int MapId { get; set; }
+        public int FloorId { get; set; }
+        public int? RoomId { get; set; }
+        public string DescriptionEng { get; set; }
+        public string DescriptionVie { get; set; }
 
-        public virtual Map Map { get; set; }
+        public virtual Floor Floor { get; set; }
         public virtual Room Room { get; set; }
         public virtual ICollection<Edge> EdgeFromPositionNavigations { get; set; }
         public virtual ICollection<Edge> EdgeToPositionNavigations { get; set; }
